@@ -1,9 +1,9 @@
 # DSSD-Grupo14
 Trabajo integrador DSSD 2021 - Grupo 14
 
-Lenguaje: python
-Framework: flask
-DB Relacional: postgreSQL
+Lenguaje: python -
+Framework: flask -
+DB Relacional: postgreSQL -
 Motor de plantillas: jinja
 
 Requiere tener instalado:
