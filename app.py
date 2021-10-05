@@ -1,3 +1,5 @@
+from numbers import Number
+
 from flask import Flask, request, jsonify, render_template
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
@@ -9,7 +11,7 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
 
-from models import Sociedad
+from models import Sociedad, Socio
 
 
 @app.route("/")
@@ -62,7 +64,9 @@ def get_by_id(id_):
 
 @app.route("/add/form",methods=['GET', 'POST'])
 def add_sociedad_formulario():
+
     if request.method == 'POST':
+
         nombre = request.form.get('nombre')
         estatuto = request.form.get('estatuto')
         fecha_creacion = request.form.get('fecha_creacion')
@@ -70,6 +74,8 @@ def add_sociedad_formulario():
         domicilio_legal = request.form.get('domicilio_legal')
         representante = request.form.get('representante')
         correo = request.form.get('correo')
+        socios = request.form.get('socios')
+
         try:
             sociedad=Sociedad(
                 nombre=nombre,
@@ -82,6 +88,21 @@ def add_sociedad_formulario():
             )
             db.session.add(sociedad)
             db.session.commit()
+
+
+            for x in range(int(socios)):
+                nombre_socio = request.form.get('nombre_socio'+str(x))
+                apellido_socio = request.form.get('apellido_socio'+str(x))
+                porcentaje_socio = request.form.get('porcentaje_socio'+str(x))
+                socio = Socio(
+                    id_sociedad=sociedad.id,
+                    nombre=nombre_socio,
+                    apellido=apellido_socio,
+                    porcentaje=porcentaje_socio
+                )
+                db.session.add(socio)
+                db.session.commit()
+
             return "Sociedad agregada. Sociedad id={}".format(sociedad.id)
         except Exception as e:
             return str(e)
@@ -89,4 +110,4 @@ def add_sociedad_formulario():
 
 
 if __name__ == '__main__':
-    app.run()
+    app.run(debug=True)
