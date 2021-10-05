@@ -25,31 +25,50 @@ Pasos a seguir para correr la aplicación localmente:
 
 1) Instalar PostgreSQL 14, iniciarlo y crear base de datos 'DSSD14'
 
-2) Instalar virtualenv (pip install virtualenv)
+2) Instalar virtualenv 
+    
+```console
+lorenzo@Lorenzos-MacBook-Air ~ % pip install virtualenv
+```
 
 3) Clonar repositorio
 
-4) En el directorio del repositorio:
+4) En el directorio del repositorio, crear y activar entorno virtual:
 
-  4.1) Crear entorno virtual (virtualenv env) 
-  4.2) Activar entorno virtual (source env/bin/activate)
+```console
+ lorenzo@Lorenzos-MacBook-Air DSSD-Grupo14 % flask db init
+ lorenzo@Lorenzos-MacBook-Air DSSD-Grupo14 % virtualenv env
+ lorenzo@Lorenzos-MacBook-Air DSSD-Grupo14 % source env/bin/activate
+```
   
-5) En el entorno virtual:
+5) Con el entorno virtual activo, instalar flask, SQLAlchemy y los módulos de migración:
 
-  5.1) Instalar flask (pip install Flask)
-  5.2) Instalar SQLAlchemy (pip install flask_sqlalchemy)
-  5.3) Instalar módulos para migrar base de datos:
-  
-    pip install flask_script
-    pip install flask_migrate 
-    pip install psycopg2-binary
+```console
+ (env) lorenzo@Lorenzos-MacBook-Air DSSD-Grupo14 % pip install Flask
+ (env) lorenzo@Lorenzos-MacBook-Air DSSD-Grupo14 % pip install flask_sqlalchemy 
+ (env) lorenzo@Lorenzos-MacBook-Air DSSD-Grupo14 % pip install flask_script
+ (env) lorenzo@Lorenzos-MacBook-Air DSSD-Grupo14 % pip install flask_migrate 
+ (env) lorenzo@Lorenzos-MacBook-Air DSSD-Grupo14 % pip install psycopg2-binary
+```
  
-  5.4) Chequear si están instalados los módulos de flask importados (request, jsonify, render_template)
-  5.5) Migrar base de datos
+- Chequear si están instalados los módulos de flask importados (request, jsonify, render_template)
+
+- Migrar base de datos
+
+```console
+ (env) lorenzo@Lorenzos-MacBook-Air DSSD-Grupo14 % flask db init
+ (env) lorenzo@Lorenzos-MacBook-Air DSSD-Grupo14 % flask db migrate
+ (env) lorenzo@Lorenzos-MacBook-Air DSSD-Grupo14 % flask db upgrade
+```
+
+- Chequear si se crearon las tablas en la base
     
-    flask db init
-    flask db migrate
-    flask db upgrade
-    
-6) Correr (flask run)
+- Correr en http://127.0.0.1:5000
+
+```console
+ (env) lorenzo@Lorenzos-MacBook-Air DSSD-Grupo14 % flask run
+```
+
+
+
  
