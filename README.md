@@ -31,7 +31,7 @@ Pasos a seguir para correr la aplicación localmente:
 lorenzo@Lorenzos-MacBook-Air ~ % pip install virtualenv
 ```
 
-3) Clonar repositorio
+3) Clonar repositorio (Carpeta DSSD-Grupo14 en este ejemplo)
 
 4) En el directorio del repositorio, crear y activar entorno virtual:
 
