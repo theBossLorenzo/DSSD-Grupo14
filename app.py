@@ -4,6 +4,7 @@ from flask import Flask, request, jsonify, render_template
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 
+
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://localhost/dssd14'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
@@ -14,11 +15,6 @@ migrate = Migrate(app, db)
 from models import Sociedad, Socio
 
 
-@app.route("/")
-def index():
-    return "DSSD - Grupo 14"
-
-
 @app.route("/add")
 def add_sociedad():
     nombre = request.args.get('nombre')
@@ -27,7 +23,7 @@ def add_sociedad():
     domicilio_real = request.args.get('domicilio_real')
     domicilio_legal = request.args.get('domicilio_legal')
     representante = request.args.get('representante')
-    correo =  request.args.get('correo')
+    correo = request.args.get('correo')
     try:
         sociedad = Sociedad(
             nombre=nombre,
@@ -62,9 +58,9 @@ def get_by_id(id_):
     except Exception as e:
         return str(e)
 
-@app.route("/add/form",methods=['GET', 'POST'])
-def add_sociedad_formulario():
 
+@app.route("/", methods=['GET', 'POST'])
+def add_sociedad_formulario():
     if request.method == 'POST':
 
         nombre = request.form.get('nombre')
@@ -72,12 +68,12 @@ def add_sociedad_formulario():
         fecha_creacion = request.form.get('fecha_creacion')
         domicilio_real = request.form.get('domicilio_real')
         domicilio_legal = request.form.get('domicilio_legal')
-        representante = request.form.get('representante')
         correo = request.form.get('correo')
         socios = request.form.get('socios')
+        representante = request.args.get('representante')
 
         try:
-            sociedad=Sociedad(
+            sociedad = Sociedad(
                 nombre=nombre,
                 estatuto=estatuto,
                 fecha_creacion=fecha_creacion,
@@ -86,22 +82,32 @@ def add_sociedad_formulario():
                 representante=representante,
                 correo=correo
             )
-            db.session.add(sociedad)
-            db.session.commit()
 
-
+            totalPorcentajes = 0
             for x in range(int(socios)):
-                nombre_socio = request.form.get('nombre_socio'+str(x))
-                apellido_socio = request.form.get('apellido_socio'+str(x))
-                porcentaje_socio = request.form.get('porcentaje_socio'+str(x))
-                socio = Socio(
-                    id_sociedad=sociedad.id,
-                    nombre=nombre_socio,
-                    apellido=apellido_socio,
-                    porcentaje=porcentaje_socio
-                )
-                db.session.add(socio)
+                totalPorcentajes += int(request.form.get('porcentaje_socio' + str(x)))
+
+            if totalPorcentajes == 100:
+                db.session.add(sociedad)
                 db.session.commit()
+                for x in range(int(socios)):
+                    nombre_socio = request.form.get('nombre_socio' + str(x))
+                    apellido_socio = request.form.get('apellido_socio' + str(x))
+                    porcentaje_socio = request.form.get('porcentaje_socio' + str(x))
+                    socio = Socio(
+                        id_sociedad=sociedad.id,
+                        nombre=nombre_socio,
+                        apellido=apellido_socio,
+                        porcentaje=porcentaje_socio
+                    )
+                    db.session.add(socio)
+                    db.session.commit()
+                    if x == 0:
+                        sociedad.representante = socio.id;
+                        db.session.add(sociedad)
+                        db.session.commit()
+            else:
+                raise Exception("Los porcentajes de los socios no suman 100%")
 
             return "Sociedad agregada. Sociedad id={}".format(sociedad.id)
         except Exception as e:

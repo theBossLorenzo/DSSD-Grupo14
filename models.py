@@ -22,6 +22,7 @@ class Sociedad(db.Model):
         self.representante = representante
         self.correo = correo
 
+
     def __repr__(self):
         return '<id {}>'.format(self.id)
 

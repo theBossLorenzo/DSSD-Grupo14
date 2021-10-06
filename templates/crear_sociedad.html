@@ -13,19 +13,49 @@
         function addFields(){
             // Number of inputs to create
             var number = document.getElementById("socios").value;
-            // Container <div> where dynamic content will be placed
-            var container = document.getElementById("dinam");
-            // Clear previous contents of the container
-            while (container.hasChildNodes()) {
-                container.removeChild(container.lastChild);
+            var form = document.getElementById("dinamic");
+
+            // Elimina los campos de socio anteriores
+            var anteriores = document.querySelectorAll('[id^="fila_socio"]');
+            for (j=0;j<anteriores.length;j++){
+                anteriores[j].remove();
             }
+
+
             for (i=0;i<number;i++){
+
+                var documentFragment = document.createDocumentFragment();
+
+                if (i<1) {
+
+                    var header = document.createElement("div");
+                    header.className = "form-row"
+                    header.id = "fila_socio"+String(i);
+                    header.name = "fila_socio"+String(i);
+                    documentFragment.appendChild(header);
+
+                    var titulo = document.createElement("label");
+                    titulo.textContent = "Completar los datos de " + number + " socio/s (La suma de los porcentajes debe ser igual a 100)";
+
+                    header.appendChild(titulo);
+                    header.appendChild(document.createElement("br"));
+                    header.appendChild(document.createElement("br"));
+
+                }
+
+                var fila = document.createElement("div");
+                fila.className = "form-row"
+                fila.id = "fila_socio"+String(i);
+                fila.name = "fila_socio"+String(i);
+
+                documentFragment.appendChild(fila);
 
                 // Crear inputs para el socio
                 var label = document.createElement("label");
-                label.textContent = "Datos del Socio " + i;
-                container.appendChild(label);
 
+                if (i<1) {
+                    label.textContent = "Datos del Socio Representante";
+                } else label.textContent = "Datos del Socio " + (parseInt(i)+1).toString();
 
                 var input = document.createElement("input");
                 input.type = "text";
@@ -33,7 +63,8 @@
                 input.placeholder = "Nombre del Socio ";
                 input.id = "nombre_socio"+String(i);
                 input.required = true;
-                container.appendChild(input);
+                input.className = "form-control";
+
 
                 var input2 = document.createElement("input");
                 input2.type = "text";
@@ -41,7 +72,8 @@
                 input2.placeholder = "Apellido del Socio ";
                 input2.id = "apellido_socio"+String(i);
                 input2.required = true;
-                container.appendChild(input2);
+                input2.className = "form-control";
+
 
                 var input3 = document.createElement("input");
                 input3.type = "number";
@@ -49,13 +81,28 @@
                 input3.placeholder = "Porcentaje del Socio ";
                 input3.id = "porcentaje_socio"+String(i);
                 input3.required = true;
-                container.appendChild(input3);
+                input3.className = "form-control";
+
 
                 linebreak = document.createElement("br");
-                // Append a line break
-                container.appendChild(linebreak);
+                linebreak.id = "fila_socio"+String(i);
+
+                fila.appendChild(label);
+                fila.appendChild(input);
+                fila.appendChild(input2);
+                fila.appendChild(input3);
+
+                form.appendChild(documentFragment);
+                form.appendChild(linebreak);
 
             }
+            submit = document.createElement("button");
+            submit.type = "submit";
+            submit.className = "btn btn-primary ";
+            submit.style = "float:right";
+            submit.textContent = "Registrar Sociedad";
+            submit.id = "fila_socio";
+            form.appendChild(submit);
         }
     </script>
 
@@ -69,8 +116,13 @@
             <br>
 
             <div class="row align-items-center justify-content-center">
-                <h1>Registrar una Sociedad Anónima</h1>
+                <h2>DSSD 2021 - Grupo 14</h2>
             </div>
+            <br>
+             <div class="row align-items-center justify-content-center">
+                <h3>Registrar una Sociedad Anónima</h3>
+            </div>
+
             <br>
 
             <form id="dinamic" method="POST">
@@ -82,14 +134,8 @@
                 <br>
                 <div class="form-row">
                     <label for="socios">Indicar cantidad de socios</label>
-                    <input required oninput="addFields()" class="form-control" type="number" placeholder="Socios" id="socios" name="socios">
+                    <input required min="1" oninput="addFields()" class="form-control" type="number" placeholder="Socios" id="socios" name="socios">
                 </div>
-                <br>
-                <div id="dinam" class="form-row">
-
-
-                </div>
-                <br>
                 <br>
                 <div class="form-row">
                     <label for="domicilio_real">Domicilio real</label>
@@ -103,7 +149,7 @@
                 <br>
                   <div class="form-row">
                     <label for="correo">Correo electrónico</label>
-                    <input required class="form-control" type="text" placeholder="Correo electrónico del representante" id="correo" name="correo">
+                    <input required class="form-control" type="email" placeholder="Correo electrónico del representante" id="correo" name="correo">
                   </div>
                 <br>
                 <div class="form-row ">
@@ -112,7 +158,7 @@
                 </div>
 
                 <br>
-                <button type="submit" class="btn btn-primary " style="float:right ">Registrar</button>
+
 
             </form>
             <br><br>
