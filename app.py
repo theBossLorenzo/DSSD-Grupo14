@@ -1,8 +1,12 @@
 from numbers import Number
 
-from flask import Flask, request, jsonify, render_template
+from flask import Flask, request, jsonify, render_template, session
+from flask.helpers import url_for
 from flask_sqlalchemy import SQLAlchemy
+from werkzeug.utils import redirect
 from flask_migrate import Migrate
+from helpers import bonita
+import requests
 
 
 app = Flask(__name__)
@@ -116,13 +120,31 @@ def add_sociedad_formulario():
             return str(e)
     return render_template("crear_sociedad.html")
 
-# @app.route("/home")
-# def render_home():
-#     return render_template("home.html")
+@app.route("/home")
+def render_home():
+    return render_template("home.html")
 
-# @app.route("/login_form")
-# def render_login():
-#     return render_template("login.html")
+@app.route("/login_form")
+def render_login():
+    if session.get("id"):
+        return redirect(url_for("/home"))
+    return render_template("login.html")
+
+@app.route("/login", methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        datos = request.form
+        if bonita.auth(datos["username"], datos["password"]):
+            # r= requests.get("http://localhost:8080/bonita/API/identity/role?f=name=MesaDeEntrada",headers={"X-Bonita-API-Token":session["X-Bonita-API-Token"],"Cookie":session["Cookies-bonita"]})
+            # idMesa=r.json()[0]["id"]
+            r = requests.get("http://localhost:8080/bonita/API/identity/user?f=userName=" + datos["username"],headers={"X-Bonita-API-Token":session["X-Bonita-API-Token"],"Cookie":session["Cookies-bonita"]})
+            idUser= r.json()[0]["id"]
+            # r2 = requests.get("http://localhost:8080/bonita/API/identity/membership?f=user_id=" + idUser, headers={"X-Bonita-API-Token":session["X-Bonita-API-Token"],"Cookie":session["Cookies-bonita"]})
+            # tipo_user= r2.json()[0]["role_id"]
+            session["id"]=idUser
+            return redirect(url_for('/home'))
+        else:
+            return redirect(url_for("/login_form"))
 
 if __name__ == '__main__':
     app.run(port=5000, debug=True)
