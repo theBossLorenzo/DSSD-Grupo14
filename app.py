@@ -6,9 +6,9 @@ from flask_migrate import Migrate
 
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:valenPostgres@localhost:5432/DSSD14'
+#app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:valenPostgres@localhost:5432/DSSD14'
 #app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:@localhost:5432/DSSD14'
-#app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:cabj1211@localhost:5432/DSSD14'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:cabj1211@localhost:5432/DSSD14'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
@@ -116,6 +116,13 @@ def add_sociedad_formulario():
             return str(e)
     return render_template("crear_sociedad.html")
 
+# @app.route("/home")
+# def render_home():
+#     return render_template("home.html")
+
+# @app.route("/login_form")
+# def render_login():
+#     return render_template("login.html")
 
 if __name__ == '__main__':
     app.run(port=5000, debug=True)
