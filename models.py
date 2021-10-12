@@ -1,4 +1,4 @@
-'''from app import db
+from app import db
 
 
 class Sociedad(db.Model):
@@ -64,4 +64,4 @@ class Socio(db.Model):
             'nombre': self.nombre,
             'apellido': self.apellido,
             'porcentaje': self.porcentaje
-        }'''
+        }

@@ -23,7 +23,6 @@ db = SQLAlchemy(app)
 migrate = Migrate(app, db)
 
 from models import Sociedad, Socio
-from helpers import bonita
 
 
 @app.route("/add")
@@ -120,11 +119,11 @@ def add_sociedad_formulario():
             else:
                 raise Exception("Los porcentajes de los socios no suman 100%")
             
-            bonita.autenticacion('april.sanchez','bpm')
-            bonita.getProcessId('Alta sociedades anonimas')
-            bonita.iniciarProceso()
-            bonita.setearVariable('emailApoderado', ) #en el espacio en blanco deberia ir el mail del representante de la sociedad
-            bonita.setearVariable('idProceso', session['idProcesoSA'])
+            autenticacion('april.sanchez','bpm')
+            getProcessId('Alta sociedades anonimas')
+            iniciarProceso()
+            setearVariable('emailApoderado', ) #en el espacio en blanco deberia ir el mail del representante de la sociedad
+            setearVariable('idProceso', session['idProcesoSA'])
 
             return "Sociedad agregada. Sociedad id={}".format(sociedad.id)
         except Exception as e:
