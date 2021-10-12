@@ -1,8 +1,11 @@
 from numbers import Number
+from threading import BrokenBarrierError
 
 from flask import Flask, request, jsonify, render_template
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
+#from requests.sessions import session #aca no es from flask import sessions????
+from flask import session
 
 
 app = Flask(__name__)
@@ -15,6 +18,7 @@ db = SQLAlchemy(app)
 migrate = Migrate(app, db)
 
 from models import Sociedad, Socio
+from helpers import bonita
 
 
 @app.route("/add")
@@ -105,11 +109,17 @@ def add_sociedad_formulario():
                     db.session.add(socio)
                     db.session.commit()
                     if x == 0:
-                        sociedad.representante = socio.id;
+                        sociedad.representante = socio.id
                         db.session.add(sociedad)
                         db.session.commit()
             else:
                 raise Exception("Los porcentajes de los socios no suman 100%")
+            
+            bonita.autenticacion('april.sanchez','bpm')
+            bonita.getProcessId('Alta sociedades anonimas')
+            bonita.iniciarProceso()
+            bonita.setearVariable('emailApoderado', ) #en el espacio en blanco deberia ir el mail del representante de la sociedad
+            bonita.setearVariable('idProceso', session['idProcesoSA'])
 
             return "Sociedad agregada. Sociedad id={}".format(sociedad.id)
         except Exception as e:
