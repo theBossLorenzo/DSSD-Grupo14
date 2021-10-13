@@ -1,12 +1,17 @@
 from numbers import Number
+from threading import BrokenBarrierError
 
 from flask import Flask, request, jsonify, render_template, session
 from flask.helpers import url_for
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.utils import redirect
 from flask_migrate import Migrate
-from helpers import bonita
+#from requests.sessions import session #aca no es from flask import sessions????
+from flask import session
 import requests
+
+#------BONITA---------
+import helpers.bonita as bonita
 
 
 app = Flask(__name__)
@@ -17,6 +22,8 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
+
+app.secret_key = 'esto-es-una-clave-muy-secreta'
 
 from models import Sociedad, Socio
 
@@ -109,11 +116,22 @@ def add_sociedad_formulario():
                     db.session.add(socio)
                     db.session.commit()
                     if x == 0:
-                        sociedad.representante = socio.id;
+                        sociedad.representante = socio.id
                         db.session.add(sociedad)
                         db.session.commit()
             else:
                 raise Exception("Los porcentajes de los socios no suman 100%")
+            
+            #------BONITA COMUNICACION-------
+            bonita.autenticacion('april.sanchez','bpm') #aca deberia ir el username y pass del usuario que este logueado en el sistema
+            print("___YA ME AUTENTIQUE___")
+            bonita.getProcessId('Alta sociedades anonimas')
+            print("___YA OBTUVE EL ID DEL PROCESO___")
+            bonita.iniciarProceso()
+            print("___INICIE EL PROCESO___")
+            bonita.setearVariable('emailApoderado', sociedad.correo, "java.lang.String")
+            bonita.setearVariable('idProceso', str(session['idProcesoSA']), "java.lang.String")
+            print("___SETEE LAS VARIABLES___")
 
             return "Sociedad agregada. Sociedad id={}".format(sociedad.id)
         except Exception as e:
