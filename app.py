@@ -8,9 +8,7 @@ from flask_migrate import Migrate
 from flask import session
 
 #------BONITA---------
-import requests
-from flask import session
-import json
+import helpers.bonita as bonita
 
 
 app = Flask(__name__)
@@ -21,6 +19,8 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
+
+app.secret_key = 'esto-es-una-clave-muy-secreta'
 
 from models import Sociedad, Socio
 
@@ -119,88 +119,21 @@ def add_sociedad_formulario():
             else:
                 raise Exception("Los porcentajes de los socios no suman 100%")
             
-            autenticacion('april.sanchez','bpm')
-            getProcessId('Alta sociedades anonimas')
-            iniciarProceso()
-            setearVariable('emailApoderado', ) #en el espacio en blanco deberia ir el mail del representante de la sociedad
-            setearVariable('idProceso', session['idProcesoSA'])
+            #------BONITA COMUNICACION-------
+            bonita.autenticacion('april.sanchez','bpm') #aca deberia ir el username y pass del usuario que este logueado en el sistema
+            print("___YA ME AUTENTIQUE___")
+            bonita.getProcessId('Alta sociedades anonimas')
+            print("___YA OBTUVE EL ID DEL PROCESO___")
+            bonita.iniciarProceso()
+            print("___INICIE EL PROCESO___")
+            bonita.setearVariable('emailApoderado', sociedad.correo, "java.lang.String")
+            bonita.setearVariable('idProceso', str(session['idProcesoSA']), "java.lang.String")
+            print("___SETEE LAS VARIABLES___")
 
             return "Sociedad agregada. Sociedad id={}".format(sociedad.id)
         except Exception as e:
             return str(e)
     return render_template("crear_sociedad.html")
-
-#-------------------BONITA--------------------
-def autenticacion (username, password):
-    url = "http://localhost:8080/bonita/loginservice"
-
-    payload='username={}&password={}&redirect=false'.format(username,password)
-    headers = {
-    'Content-Type': 'application/x-www-form-urlencoded'
-    }
-
-    response = requests.request("POST", url, headers=headers, data=payload)
-
-    if (response.status_code == 200) :
-        session["X-Bonita-API-Token"] = response.cookies.get('X-Bonita-API-Token')
-        session["Cookies-bonita"] = "JSESSIONID="+response.cookies.get('JSESSIONID')+";X-Bonita-API-Token=" + response.cookies.get('X-Bonita-API-Token')
-        print(response.text)
-
-        return True
-    else:
-        return False
-
-def getProcessId (nombreProceso):
-    url = "http://localhost:8080/bonita/API/bpm/process?s={}".format(nombreProceso)
-
-    payload={}
-    headers = {}
-
-    response = requests.request("GET", url, headers=headers, data=payload)
-
-    print(response.text)
-
-    #aca deberiamos guardar el id del proceso que viene en response
-    body = json.loads(response.content) #aca transformo lo que vino como json en un diccionario Python
-    session['idProcesoSA'] = body('id') #aca seteo en una variable de sesion lo que hay en el diccionario con la key id
-
-    return True
-
-def iniciarProceso ():
-    url = "http://localhost:8080/bonita/API/bpm/process/{}/instantiation".format(session['idProcesoSA'])
-
-    payload={}
-    headers = {
-    'X-Bonita-API-Token': '{}'.format(session["X-Bonita-API-Token"])
-    }
-
-    response = requests.request("POST", url, headers=headers, data=payload)
-
-    print(response.text)
-
-    #aca deberiamos guardar el id del caso que viene en response
-    body = json.loads(response.content) #aca transformo lo que vino como json en un diccionario Python
-    session['caseId'] = body('caseId') #aca seteo en una variable de sesion lo que hay en el diccionario con la key caseId
-
-    
-
-    return True
-
-def setearVariable(nombreVariable, valorVariable):
-    url = "http://localhost:8080/bonita/API/bpm/caseVariable/{}/{}".format(session['caseId'], nombreVariable)
-
-    payload = json.dumps({
-    "value": valorVariable,
-    "type": "java.lang.String"
-    })
-    headers = {
-    'X-Bonita-API-Token': '6ae63c8b-62f7-4473-8396-61f2b0b1142b',
-    'Content-Type': 'application/json'
-    }
-
-    response = requests.request("PUT", url, headers=headers, data=payload)
-
-    print(response.text)
 
 if __name__ == '__main__':
     app.run(port=5000, debug=True)
