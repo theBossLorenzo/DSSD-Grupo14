@@ -8,9 +8,6 @@
     <title>Document</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO"
         crossorigin="anonymous">
-    <link href="//maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" rel="stylesheet" id="bootstrap-css">
-    <script src="//maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
-    <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
 
 
 </head>
@@ -28,28 +25,39 @@
             </div>
             <br>
              <div class="row align-items-center justify-content-center">
-                <h3>Iniciar Sesión</h3>
+                <h3>Sociedades Presentadas</h3>
+            </div>
+            <div class="row align-items-center justify-content-center">
+                <h4>(Sociedades que aún no fueron aceptadas ni rechazadas)</h4>
             </div>
 
             <br>
             <br>
-            <div class="row justify-content-center align-items-center" style="height:5vh">
-                <div class="col-4">
-                    <div class="card">
-                        <div class="card-body">
-                            <form method="POST" autocomplete="off">
-                                <div class="form-group">
-                                    <input type="text" placeholder="Ingrese su usuario" class="form-control" name="username">
-                                </div>
-                                <div class="form-group">
-                                    <input type="password" placeholder="Contraseña" class="form-control" name="password">
-                                </div>
-                                <a href="../sociedades" class="btn btn-primary">Login</a></td>
-                            </form>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            <br>
+
+            <table class="table">
+                <thead>
+                <tr>
+                    <th scope="col">Nombre</th>
+                    <th scope="col">Correo</th>
+                    <th scope="col">Domicilio legal</th>
+                    <th scope="col"></th>
+                    <th scope="col"></th>
+
+                </tr>
+                </thead>
+                <tbody>
+                {% for s in sociedades %}
+                    <tr>
+                        <td>{{ s[1] }}</td>
+                        <td>{{ s[4] }}</td>
+                        <td>{{ s[3] }}</td>
+                        <td><a href="../aceptar/{{ s[0] }}" class="btn btn-success">Aceptar</a></td>
+                        <td><a href="../rechazar/{{ s[0] }}" class="btn btn-danger">Rechazar</a></td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
             <br>
         </div>
     </div>

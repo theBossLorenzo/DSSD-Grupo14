@@ -12,6 +12,8 @@ class Sociedad(db.Model):
     domicilio_real = db.Column(db.String())
     representante = db.Column(db.String())
     correo = db.Column(db.String())
+    aceptada = db.Column(db.Boolean())
+    comentario = db.Column(db.String())
 
     def __init__(self, nombre,estatuto,fecha_creacion,domicilio_legal,domicilio_real,representante,correo):
         self.nombre = nombre
