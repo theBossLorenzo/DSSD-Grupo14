@@ -195,5 +195,11 @@ def rechazar_sociedad(id):
     except Exception as e:
         return str(e)
 
+
+@app.route("/login")
+def login():
+    return render_template("login.html")
+
+
 if __name__ == '__main__':
     app.run(port=5000, debug=True)
