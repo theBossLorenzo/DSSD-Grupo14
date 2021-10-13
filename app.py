@@ -4,17 +4,18 @@ from threading import BrokenBarrierError
 from flask import Flask, request, jsonify, render_template
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
-#from requests.sessions import session #aca no es from flask import sessions????
+# from requests.sessions import session #aca no es from flask import sessions????
 from flask import session
 
-#------BONITA---------
+# ------BONITA---------
+from sqlalchemy import text
+
 import helpers.bonita as bonita
 
-
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:valenPostgres@localhost:5432/DSSD14'
-#app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:@localhost:5432/DSSD14'
-#app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:cabj1211@localhost:5432/DSSD14'
+# app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:valenPostgres@localhost:5432/DSSD14'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:@localhost:5432/dssd14'
+# app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:cabj1211@localhost:5432/DSSD14'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
@@ -54,7 +55,7 @@ def add_sociedad():
 @app.route("/getall")
 def get_all():
     try:
-        sociedades = Sociedad.query.all()
+        sociedades = db.session.execute('SELECT * FROM sociedad')
         return jsonify([e.serialize() for e in sociedades])
     except Exception as e:
         return str(e)
@@ -65,6 +66,22 @@ def get_by_id(id_):
     try:
         sociedad = Sociedad.query.filter_by(id=id_).first()
         return jsonify(sociedad.serialize())
+    except Exception as e:
+        return str(e)
+
+
+@app.route("/sociedades")
+def sociedades():
+    try:
+        result = db.session.execute(text("select * from sociedad where sociedad.aceptada is NULL"))
+        sociedades = []
+
+        for row in result:
+            sociedad = [row['id'], row['nombre'], row['domicilio_legal'], row['domicilio_real'], row['correo'],
+                        row['estatuto']]
+            sociedades.append(sociedad)
+
+        return render_template("sociedades.html", sociedades=sociedades)
     except Exception as e:
         return str(e)
 
@@ -118,9 +135,10 @@ def add_sociedad_formulario():
                         db.session.commit()
             else:
                 raise Exception("Los porcentajes de los socios no suman 100%")
-            
-            #------BONITA COMUNICACION-------
-            bonita.autenticacion('april.sanchez','bpm') #aca deberia ir el username y pass del usuario que este logueado en el sistema
+
+            # ------BONITA COMUNICACION-------
+            bonita.autenticacion('april.sanchez',
+                                 'bpm')  # aca deberia ir el username y pass del usuario que este logueado en el sistema
             print("___YA ME AUTENTIQUE___")
             bonita.getProcessId('Alta sociedades anonimas')
             print("___YA OBTUVE EL ID DEL PROCESO___")
@@ -134,6 +152,36 @@ def add_sociedad_formulario():
         except Exception as e:
             return str(e)
     return render_template("crear_sociedad.html")
+
+
+@app.route("/rechazar/<id>", methods=['GET', 'POST'])
+def rechazar_sociedad(id):
+    try:
+        if request.method == 'POST':
+
+            comentario = request.form.get('comentario')
+            id = request.form.get('id')
+
+            print(comentario)
+            print(id)
+
+            db.session.execute(text("update sociedad set aceptada = false, comentario = :comentario where sociedad.id = :id"), {"id": int(id), "comentario": comentario})
+            db.session.commit()
+            return "Sociedad rechazada. Sociedad id={}".format(id)
+        else:
+            result = db.session.execute(text("select * from sociedad where sociedad.id = :id"), {"id": int(id)})
+            sociedades = []
+
+            for row in result:
+                sociedad = [row['id'], row['nombre'], row['domicilio_legal'], row['domicilio_real'], row['correo'],
+                        row['estatuto']]
+                sociedades.append(sociedad)
+
+
+            return render_template("rechazar_sociedad.html", sociedades=sociedades)
+
+    except Exception as e:
+        return str(e)
 
 if __name__ == '__main__':
     app.run(port=5000, debug=True)
