@@ -154,6 +154,18 @@ def add_sociedad_formulario():
     return render_template("crear_sociedad.html")
 
 
+@app.route("/aceptar/<id>", methods=['GET'])
+def aceptar_sociedad(id):
+    try:
+        if request.method == 'GET':
+
+            db.session.execute(text("update sociedad set aceptada = true where sociedad.id = :id"), {"id": int(id)})
+            db.session.commit()
+
+            return "Sociedad aceptada. Sociedad id={}".format(id)
+    except Exception as e:
+        return str(e)
+
 @app.route("/rechazar/<id>", methods=['GET', 'POST'])
 def rechazar_sociedad(id):
     try:
