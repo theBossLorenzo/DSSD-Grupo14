@@ -3,7 +3,7 @@ from flask import session
 import json
 
 def autenticacion (username, password):
-    url = "http://localhost:8085/bonita/loginservice"
+    url = "http://localhost:8080/bonita/loginservice"
 
     payload='username={}&password={}&redirect=false'.format(username,password)
     headers = {
@@ -22,7 +22,7 @@ def autenticacion (username, password):
         return False
 
 def getProcessId (nombreProceso):
-    url = "http://localhost:8085/bonita/API/bpm/process?name={}".format(nombreProceso)
+    url = "http://localhost:8080/bonita/API/bpm/process?name={}".format(nombreProceso)
 
     payload={}
     headers = {
@@ -38,7 +38,7 @@ def getProcessId (nombreProceso):
     return True
 
 def iniciarProceso ():
-    url = "http://localhost:8085/bonita/API/bpm/process/{}/instantiation".format(session['idProcesoSA'])
+    url = "http://localhost:8080/bonita/API/bpm/process/{}/instantiation".format(session['idProcesoSA'])
 
     payload={}
     headers = {
@@ -54,7 +54,7 @@ def iniciarProceso ():
     return True
 
 def setearVariable(nombreVariable, valorVariable, tipo):
-    url = "http://localhost:8085/bonita/API/bpm/caseVariable/{}/{}".format(session['caseId'], nombreVariable)
+    url = "http://localhost:8080/bonita/API/bpm/caseVariable/{}/{}".format(session['caseId'], nombreVariable)
 
     payload = json.dumps({
     "value": valorVariable,
