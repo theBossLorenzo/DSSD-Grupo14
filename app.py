@@ -1,11 +1,14 @@
 from numbers import Number
 from threading import BrokenBarrierError
 
-from flask import Flask, request, jsonify, render_template
+from flask import Flask, request, jsonify, render_template, session, abort
+from flask.helpers import url_for
 from flask_sqlalchemy import SQLAlchemy
+from werkzeug.utils import redirect
 from flask_migrate import Migrate
 # from requests.sessions import session #aca no es from flask import sessions????
 from flask import session
+import requests
 
 # ------BONITA---------
 from sqlalchemy import text
@@ -24,8 +27,73 @@ migrate = Migrate(app, db)
 app.secret_key = 'esto-es-una-clave-muy-secreta'
 
 from models import Sociedad, Socio
+from helpers import auth
+
+def verificarSesion():
+    if not auth.authenticated(session):
+        abort(401)
 
 #CARGA DE REGISTRO DE SA
+@app.route("/add")
+def add_sociedad():
+    nombre = request.args.get('nombre')
+    estatuto = request.args.get('estatuto')
+    fecha_creacion = request.args.get('fecha_creacion')
+    domicilio_real = request.args.get('domicilio_real')
+    domicilio_legal = request.args.get('domicilio_legal')
+    representante = request.args.get('representante')
+    correo = request.args.get('correo')
+    try:
+        sociedad = Sociedad(
+            nombre=nombre,
+            estatuto=estatuto,
+            fecha_creacion=fecha_creacion,
+            domicilio_legal=domicilio_legal,
+            domicilio_real=domicilio_real,
+            representante=representante,
+            correo=correo
+        )
+        db.session.add(sociedad)
+        db.session.commit()
+        return "Sociedad agregada. Sociedad id={}".format(sociedad.id)
+    except Exception as e:
+        return str(e)
+
+@app.route("/getall")
+def get_all():
+    try:
+        sociedades = db.session.execute('SELECT * FROM sociedad')
+        return jsonify([e.serialize() for e in sociedades])
+    except Exception as e:
+        return str(e)
+
+
+@app.route("/get/<id_>")
+def get_by_id(id_):
+    try:
+        sociedad = Sociedad.query.filter_by(id=id_).first()
+        return jsonify(sociedad.serialize())
+    except Exception as e:
+        return str(e)
+
+
+@app.route("/sociedades")
+def sociedades():
+    verificarSesion()
+    try:
+        result = db.session.execute(text("select * from sociedad where sociedad.aceptada is NULL"))
+        sociedades = []
+
+        for row in result:
+            sociedad = [row['id'], row['nombre'], row['domicilio_legal'], row['domicilio_real'], row['correo'],
+                        row['estatuto']]
+            sociedades.append(sociedad)
+
+        return render_template("sociedades.html", sociedades=sociedades)
+    except Exception as e:
+        return str(e)
+
+
 @app.route("/", methods=['GET', 'POST'])
 def add_sociedad_formulario():
     if request.method == 'POST':
@@ -114,6 +182,7 @@ def sociedades():
 #ACEPTAR SOCIEDAD
 @app.route("/aceptar/<id>", methods=['GET'])
 def aceptar_sociedad(id):
+    verificarSesion()
     try:
         if request.method == 'GET':
 
@@ -146,6 +215,7 @@ def aceptar_sociedad(id):
 #RECHAZAR SOCIEDAD
 @app.route("/rechazar/<id>", methods=['GET', 'POST'])
 def rechazar_sociedad(id):
+    verificarSesion()
     try:
         if request.method == 'POST':
 
@@ -172,6 +242,33 @@ def rechazar_sociedad(id):
 
     except Exception as e:
         return str(e)
+
+@app.route("/autenticacion", methods=["POST"])
+def autenticacion():
+    datos= request.form
+    print(datos["username"])
+    print(datos["password"])
+    bonita.autenticacion(datos["username"],datos["password"])
+    print(bonita.autenticacion(datos["username"], datos["password"]))
+    url = "http://localhost:8080/bonita/API/identity/user?f=userName=april.sanchez"
+    payload={}
+    headers = {
+    'Cookie': session["Cookies-bonita"],
+    'X-Bonita-API-Token': session["X-Bonita-API-Token"]
+    }
+
+    response = requests.request("GET", url, headers=headers, data=payload)         
+    idUser= response.json()[0]["id"]         
+    print(idUser)
+    session["idUsuario"]=idUser
+    session["rol"]= "mesa_entrada"
+    #Si es mesa de entrada
+    return redirect('/sociedades')
+
+@app.route("/login",methods=["GET"])
+def login():
+    return render_template("login.html")
+
 
 if __name__ == '__main__':
     app.run(port=5000, debug=True)
