@@ -2,6 +2,8 @@ import requests
 from flask import session
 import json
 
+from requests.api import request
+
 def autenticacion (username, password):
     url = "http://localhost:8080/bonita/loginservice"
 
@@ -68,6 +70,58 @@ def setearVariable(nombreVariable, valorVariable, tipo):
 
     requests.request("PUT", url, headers=headers, data=payload)
     
+    return True
+
+def consultarValorVariable (nombreVariable):
+    url = "http://localhost:8080/bonita/API/bpm/caseVariable/{}/{}".format(session['caseId'], nombreVariable)
+
+    payload={}
+    headers = {
+    'Cookie': session["Cookies-bonita"]
+    }
+
+    response = requests.request("GET", url, headers=headers, data=payload)
+
+    return response.json()["value"]
+
+def buscarActividad ():
+    url = "http://localhost:8080/bonita/API/bpm/task/?f=caseId={}".format(session["caseId"])
+
+    payload={}
+    headers = {
+    'Cookie': session["Cookies-bonita"]
+    }
+
+    response = requests.request("GET", url, headers=headers, data=payload)
+    session["idActor"]  = response.json()["actorId"]
+
+    return response.json()["id"]
+
+def asignarTarea (idActividad):
+    url = "http://localhost:8080/bonita/API/bpm/userTask/{}".format(idActividad)
+
+    payload={"assigned_id": session["idActor"]}
+    headers = {
+        "X-Bonita-API-Token":session["X-Bonita-API-Token"],
+        'Content-Type': 'application/json',
+        "Cookie": session["Cookies-bonita"]
+    }
+    
+    requests.request("GET", url, headers=headers, data=payload)
+
+    return True
+
+def actividadCompleta (idActividad):
+    url = "http://localhost:8080/bonita/API/bpm/activity/{}".format(idActividad)
+
+    payload={}
+    headers = {
+        "X-Bonita-API-Token":session["X-Bonita-API-Token"],
+        "Cookie": session["Cookies-bonita"]
+    }
+
+    requests.request("PUT", url, headers, body=payload)
+
     return True
 
 

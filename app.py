@@ -13,8 +13,8 @@ from sqlalchemy import text
 import helpers.bonita as bonita
 
 app = Flask(__name__)
-# app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:valenPostgres@localhost:5432/DSSD14'
-app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:@localhost:5432/dssd14'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:valenPostgres@localhost:5432/DSSD14'
+# app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:@localhost:5432/dssd14'
 # app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:cabj1211@localhost:5432/DSSD14'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
@@ -25,67 +25,7 @@ app.secret_key = 'esto-es-una-clave-muy-secreta'
 
 from models import Sociedad, Socio
 
-
-@app.route("/add")
-def add_sociedad():
-    nombre = request.args.get('nombre')
-    estatuto = request.args.get('estatuto')
-    fecha_creacion = request.args.get('fecha_creacion')
-    domicilio_real = request.args.get('domicilio_real')
-    domicilio_legal = request.args.get('domicilio_legal')
-    representante = request.args.get('representante')
-    correo = request.args.get('correo')
-    try:
-        sociedad = Sociedad(
-            nombre=nombre,
-            estatuto=estatuto,
-            fecha_creacion=fecha_creacion,
-            domicilio_legal=domicilio_legal,
-            domicilio_real=domicilio_real,
-            representante=representante,
-            correo=correo
-        )
-        db.session.add(sociedad)
-        db.session.commit()
-        return "Sociedad agregada. Sociedad id={}".format(sociedad.id)
-    except Exception as e:
-        return str(e)
-
-
-@app.route("/getall")
-def get_all():
-    try:
-        sociedades = db.session.execute('SELECT * FROM sociedad')
-        return jsonify([e.serialize() for e in sociedades])
-    except Exception as e:
-        return str(e)
-
-
-@app.route("/get/<id_>")
-def get_by_id(id_):
-    try:
-        sociedad = Sociedad.query.filter_by(id=id_).first()
-        return jsonify(sociedad.serialize())
-    except Exception as e:
-        return str(e)
-
-
-@app.route("/sociedades")
-def sociedades():
-    try:
-        result = db.session.execute(text("select * from sociedad where sociedad.aceptada is NULL"))
-        sociedades = []
-
-        for row in result:
-            sociedad = [row['id'], row['nombre'], row['domicilio_legal'], row['domicilio_real'], row['correo'],
-                        row['estatuto']]
-            sociedades.append(sociedad)
-
-        return render_template("sociedades.html", sociedades=sociedades)
-    except Exception as e:
-        return str(e)
-
-
+#CARGA DE REGISTRO DE SA
 @app.route("/", methods=['GET', 'POST'])
 def add_sociedad_formulario():
     if request.method == 'POST':
@@ -153,7 +93,23 @@ def add_sociedad_formulario():
             return str(e)
     return render_template("crear_sociedad.html")
 
+#LISTA DE SOCIEDADES CON ESTADO PENDIENTE
+@app.route("/sociedades")
+def sociedades():
+    try:
+        result = db.session.execute(text("select * from sociedad where sociedad.aceptada is NULL"))
+        sociedades = []
 
+        for row in result:
+            sociedad = [row['id'], row['nombre'], row['domicilio_legal'], row['domicilio_real'], row['correo'],
+                        row['estatuto']]
+            sociedades.append(sociedad)
+
+        return render_template("sociedades.html", sociedades=sociedades)
+    except Exception as e:
+        return str(e)
+
+#ACEPTAR SOCIEDAD
 @app.route("/aceptar/<id>", methods=['GET'])
 def aceptar_sociedad(id):
     try:
@@ -162,10 +118,21 @@ def aceptar_sociedad(id):
             db.session.execute(text("update sociedad set aceptada = true where sociedad.id = :id"), {"id": int(id)})
             db.session.commit()
 
+            idActividad = bonita.buscarActividad()
+            print("___YA TENGO EL ID DE LA ACTIVIDAD___")
+            bonita.asignarTarea(idActividad)
+            print("___YA ASIGNE LA TAREA AL ACTOR CON ID {}___".format(session["idActor"]))
+            bonita.setearVariable("valido", True, "java.lang.Boolean")
+            print("___YA SETEE LA VARIABLE VALIDO___")
+            print(bonita.consultarValorVariable("valido"))
+            bonita.actividadCompleta(idActividad)
+            print("___COMPLETE LA ACTIVIDAD___")
+
             return "Sociedad aceptada. Sociedad id={}".format(id)
     except Exception as e:
         return str(e)
 
+#RECHAZAR SOCIEDAD
 @app.route("/rechazar/<id>", methods=['GET', 'POST'])
 def rechazar_sociedad(id):
     try:
