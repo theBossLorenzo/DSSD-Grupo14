@@ -255,5 +255,11 @@ def rechazarSociedadBonita (caseId, comentario):
     bonita.actividadCompleta(idActividad)
     print("___COMPLETE LA ACTIVIDAD___")
 
+@app.route("/logout")
+def logout():
+    if (auth.authenticated(session)):
+        del session["idUsuario"]
+    return redirect('/login')
+
 if __name__ == '__main__':
     app.run(port=5000, debug=True)
