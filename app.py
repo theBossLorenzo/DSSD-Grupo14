@@ -84,32 +84,66 @@ def add_sociedad_formulario():
                 raise Exception("Los porcentajes de los socios no suman 100%")
 
             # ------BONITA COMUNICACION-------
-            bonita.autenticacion('april.sanchez', 'bpm')  # aca deberia ir el username y pass del usuario que este logueado en el sistema
-            print("___YA ME AUTENTIQUE___")
-            bonita.getProcessId('Alta sociedades anonimas')
-            print("___YA OBTUVE EL ID DEL PROCESO___")
-            #db.session.execute(text("update sociedad set caseId = :valor where sociedad.id = :id"), {"id": sociedad.id, "valor": bonita.iniciarProceso()})
-            sociedad.caseId = bonita.iniciarProceso()
-            db.session.add(sociedad)
-            db.session.commit()
+            idSociedad = comunicacionBonita(sociedad)
 
-            result = db.session.execute(text("select * from sociedad where sociedad.id = :id"), {"id": sociedad.id})
-            sociedades = []
-
-            for row in result:
-                sociedad = [row['id'], row['nombre'], row['domicilio_legal'], row['domicilio_real'], row['correo'],
-                            row['estatuto'], row['caseId']]
-                sociedades.append(sociedad)
-
-            print("___INICIE EL PROCESO___")
-            bonita.setearVariable('emailApoderado', sociedades[0][4], "java.lang.String", str(sociedades[0][6]))
-            bonita.setearVariable('idProceso', str(session['idProcesoSA']), "java.lang.String", str(sociedades[0][6]))
-            print("___SETEE LAS VARIABLES___")
-
-            return "Sociedad agregada. Sociedad id={}".format(str(sociedades[0][0]))
+            return "Sociedad agregada. Sociedad id={}".format(idSociedad)
         except Exception as e:
             return str(e)
     return render_template("crear_sociedad.html")
+
+def comunicacionBonita (sociedad):
+    bonita.autenticacion('jan.fisher', 'bpm')
+    print("___YA ME AUTENTIQUE___")
+    bonita.getProcessId('Alta sociedades anonimas')
+    print("___YA OBTUVE EL ID DEL PROCESO___")
+    sociedad.caseId = bonita.iniciarProceso()
+    db.session.add(sociedad)
+    db.session.commit()
+
+    result = db.session.execute(text("select * from sociedad where sociedad.id = :id"), {"id": sociedad.id})
+    sociedades = []
+
+    for row in result:
+        sociedad = [row['id'], row['nombre'], row['domicilio_legal'], row['domicilio_real'], row['correo'],
+                    row['estatuto'], row['caseId']]
+        sociedades.append(sociedad)
+
+    print("___INICIE EL PROCESO___")
+    bonita.setearVariable('emailApoderado', sociedades[0][4], "java.lang.String", str(sociedades[0][6]))
+    bonita.setearVariable('idProceso', str(session['idProcesoSA']), "java.lang.String", str(sociedades[0][6]))
+    print("___SETEE LAS VARIABLES___")
+    print(bonita.consultarValorVariable('emailApoderado', sociedades[0][6]))
+    print(bonita.consultarValorVariable('idProceso', sociedades[0][6]))
+
+    return sociedades[0][0]
+
+#AUTENTICACION EMPLEADO MESA DE ENTRADA
+@app.route("/autenticacion", methods=["POST"])
+def autenticacion():
+    datos= request.form
+    print(datos["username"])
+    print(datos["password"])
+    #-------BONITA--------
+    bonita.autenticacion(datos["username"],datos["password"])
+    print(bonita.autenticacion(datos["username"], datos["password"]))
+    url = "http://localhost:8080/bonita/API/identity/user?f=userName={}".format(datos['username'])
+    payload={}
+    headers = {
+        'Cookie': session["Cookies-bonita"],
+        'X-Bonita-API-Token': session["X-Bonita-API-Token"]
+    }
+    response = requests.request("GET", url, headers=headers, data=payload)         
+    idUser= response.json()[0]["id"]         
+    print(idUser)
+    session["idUsuario"]=idUser
+    session["rol"]= "mesa_entrada"
+    
+    #Si es mesa de entrada
+    return redirect('/sociedades')
+
+@app.route("/login",methods=["GET"])
+def login():
+    return render_template("login.html")
 
 #LISTA DE SOCIEDADES CON ESTADO PENDIENTE
 @app.route("/sociedades")
@@ -147,19 +181,22 @@ def aceptar_sociedad(id):
                             row['estatuto'], row['caseId']]
                 sociedades.append(sociedad)
 
-            idActividad = bonita.buscarActividad(sociedades[0][6])
-            print("___YA TENGO EL ID DE LA ACTIVIDAD___")
-            bonita.asignarTarea(idActividad)
-            print("___YA ASIGNE LA TAREA AL ACTOR CON ID {}___".format(session["idUsuario"]))
-            bonita.setearVariable("valido", 'true', "java.lang.Boolean", sociedades[0][6])
-            print("___YA SETEE LA VARIABLE VALIDO___")
-            print(bonita.consultarValorVariable("valido",sociedades[0][6]))
-            bonita.actividadCompleta(idActividad)
-            print("___COMPLETE LA ACTIVIDAD___")
+            aceptarSociedadBonita(sociedades[0][6])
 
             return "Sociedad aceptada. Sociedad id={}".format(id)
     except Exception as e:
         return str(e)
+
+def aceptarSociedadBonita (caseId):
+    idActividad = bonita.buscarActividad(caseId)
+    print("___YA TENGO EL ID DE LA ACTIVIDAD___")
+    bonita.asignarTarea(idActividad)
+    print("___YA ASIGNE LA TAREA AL ACTOR CON ID {}___".format(session["idUsuario"]))
+    bonita.setearVariable("valido", 'true', "java.lang.Boolean", caseId)
+    print("___YA SETEE LA VARIABLE VALIDO___")
+    print(bonita.consultarValorVariable("valido",caseId))
+    bonita.actividadCompleta(idActividad)
+    print("___COMPLETE LA ACTIVIDAD___")
 
 #RECHAZAR SOCIEDAD
 @app.route("/rechazar/<id>", methods=['GET', 'POST'])
@@ -176,6 +213,19 @@ def rechazar_sociedad(id):
 
             db.session.execute(text("update sociedad set aceptada = false, comentario = :comentario where sociedad.id = :id"), {"id": int(id), "comentario": comentario})
             db.session.commit()
+
+            #------BONITA------
+            result = db.session.execute(text("select * from sociedad where sociedad.id = :id"), {"id": int(id)})
+            sociedades = []
+
+            for row in result:
+                sociedad = [row['id'], row['nombre'], row['domicilio_legal'], row['domicilio_real'], row['correo'],
+                            row['estatuto'], row['caseId']]
+                sociedades.append(sociedad)
+
+
+            rechazarSociedadBonita (sociedades[0][6], comentario)
+
             return "Sociedad rechazada. Sociedad id={}".format(id)
         else:
             result = db.session.execute(text("select * from sociedad where sociedad.id = :id"), {"id": int(id)})
@@ -192,33 +242,18 @@ def rechazar_sociedad(id):
     except Exception as e:
         return str(e)
 
-@app.route("/autenticacion", methods=["POST"])
-def autenticacion():
-    datos= request.form
-    print(datos["username"])
-    print(datos["password"])
-    #-------BONITA--------
-    bonita.autenticacion(datos["username"],datos["password"])
-    print(bonita.autenticacion(datos["username"], datos["password"]))
-    url = "http://localhost:8080/bonita/API/identity/user?f=userName={}".format(datos['username'])
-    payload={}
-    headers = {
-        'Cookie': session["Cookies-bonita"],
-        'X-Bonita-API-Token': session["X-Bonita-API-Token"]
-    }
-    response = requests.request("GET", url, headers=headers, data=payload)         
-    idUser= response.json()[0]["id"]         
-    print(idUser)
-    session["idUsuario"]=idUser
-    session["rol"]= "mesa_entrada"
-    
-    #Si es mesa de entrada
-    return redirect('/sociedades')
-
-@app.route("/login",methods=["GET"])
-def login():
-    return render_template("login.html")
-
+def rechazarSociedadBonita (caseId, comentario):
+    idActividad = bonita.buscarActividad(caseId)
+    print("___YA TENGO EL ID DE LA ACTIVIDAD___")
+    bonita.asignarTarea(idActividad)
+    print("___YA ASIGNE LA TAREA AL ACTOR CON ID {}___".format(session["idUsuario"]))
+    bonita.setearVariable("valido", 'false', "java.lang.Boolean", caseId)
+    bonita.setearVariable("informeRegistro", comentario, "java.lang.String", caseId)
+    print("___YA SETEE LAS VARIABLES")
+    print(bonita.consultarValorVariable("valido",caseId))
+    print(bonita.consultarValorVariable("informeRegistro",caseId))
+    bonita.actividadCompleta(idActividad)
+    print("___COMPLETE LA ACTIVIDAD___")
 
 if __name__ == '__main__':
     app.run(port=5000, debug=True)
