@@ -52,8 +52,8 @@ def iniciarProceso ():
 
     return response.json()["caseId"]
 
-def setearVariable(nombreVariable, valorVariable, tipo):
-    url = "http://localhost:8080/bonita/API/bpm/caseVariable/{}/{}".format(session['caseId'], nombreVariable)
+def setearVariable(nombreVariable, valorVariable, tipo, caseId):
+    url = "http://localhost:8080/bonita/API/bpm/caseVariable/{}/{}".format(caseId, nombreVariable)
 
     payload = json.dumps({
     "value": valorVariable,
@@ -69,8 +69,8 @@ def setearVariable(nombreVariable, valorVariable, tipo):
     
     return True
 
-def consultarValorVariable (nombreVariable):
-    url = "http://localhost:8080/bonita/API/bpm/caseVariable/{}/{}".format(session['caseId'], nombreVariable)
+def consultarValorVariable (nombreVariable, caseId):
+    url = "http://localhost:8080/bonita/API/bpm/caseVariable/{}/{}".format(caseId, nombreVariable)
 
     payload={}
     headers = {
@@ -116,7 +116,7 @@ def actividadCompleta (idActividad):
         "Cookie": session["Cookies-bonita"]
     }
 
-    requests.request("PUT", url, headers, body=payload)
+    requests.request("PUT", url, headers=headers, data=payload)
 
     return True
 

@@ -33,67 +33,6 @@ def verificarSesion():
     if not auth.authenticated(session):
         abort(401)
 
-#CARGA DE REGISTRO DE SA
-@app.route("/add")
-def add_sociedad():
-    nombre = request.args.get('nombre')
-    estatuto = request.args.get('estatuto')
-    fecha_creacion = request.args.get('fecha_creacion')
-    domicilio_real = request.args.get('domicilio_real')
-    domicilio_legal = request.args.get('domicilio_legal')
-    representante = request.args.get('representante')
-    correo = request.args.get('correo')
-    try:
-        sociedad = Sociedad(
-            nombre=nombre,
-            estatuto=estatuto,
-            fecha_creacion=fecha_creacion,
-            domicilio_legal=domicilio_legal,
-            domicilio_real=domicilio_real,
-            representante=representante,
-            correo=correo
-        )
-        db.session.add(sociedad)
-        db.session.commit()
-        return "Sociedad agregada. Sociedad id={}".format(sociedad.id)
-    except Exception as e:
-        return str(e)
-
-@app.route("/getall")
-def get_all():
-    try:
-        sociedades = db.session.execute('SELECT * FROM sociedad')
-        return jsonify([e.serialize() for e in sociedades])
-    except Exception as e:
-        return str(e)
-
-
-@app.route("/get/<id_>")
-def get_by_id(id_):
-    try:
-        sociedad = Sociedad.query.filter_by(id=id_).first()
-        return jsonify(sociedad.serialize())
-    except Exception as e:
-        return str(e)
-
-
-@app.route("/sociedades")
-def sociedades():
-    verificarSesion()
-    try:
-        result = db.session.execute(text("select * from sociedad where sociedad.aceptada is NULL"))
-        sociedades = []
-
-        for row in result:
-            sociedad = [row['id'], row['nombre'], row['domicilio_legal'], row['domicilio_real'], row['correo'],
-                        row['estatuto']]
-            sociedades.append(sociedad)
-
-        return render_template("sociedades.html", sociedades=sociedades)
-    except Exception as e:
-        return str(e)
-
-
 @app.route("/", methods=['GET', 'POST'])
 def add_sociedad_formulario():
     if request.method == 'POST':
@@ -153,12 +92,21 @@ def add_sociedad_formulario():
             sociedad.caseId = bonita.iniciarProceso()
             db.session.add(sociedad)
             db.session.commit()
+
+            result = db.session.execute(text("select * from sociedad where sociedad.id = :id"), {"id": sociedad.id})
+            sociedades = []
+
+            for row in result:
+                sociedad = [row['id'], row['nombre'], row['domicilio_legal'], row['domicilio_real'], row['correo'],
+                            row['estatuto'], row['caseId']]
+                sociedades.append(sociedad)
+
             print("___INICIE EL PROCESO___")
-            bonita.setearVariable('emailApoderado', sociedad.correo, "java.lang.String")
-            bonita.setearVariable('idProceso', str(session['idProcesoSA']), "java.lang.String")
+            bonita.setearVariable('emailApoderado', sociedades[0][4], "java.lang.String", str(sociedades[0][6]))
+            bonita.setearVariable('idProceso', str(session['idProcesoSA']), "java.lang.String", str(sociedades[0][6]))
             print("___SETEE LAS VARIABLES___")
 
-            return "Sociedad agregada. Sociedad id={}".format(sociedad.id)
+            return "Sociedad agregada. Sociedad id={}".format(str(sociedades[0][0]))
         except Exception as e:
             return str(e)
     return render_template("crear_sociedad.html")
@@ -166,6 +114,7 @@ def add_sociedad_formulario():
 #LISTA DE SOCIEDADES CON ESTADO PENDIENTE
 @app.route("/sociedades")
 def sociedades():
+    verificarSesion()
     try:
         result = db.session.execute(text("select * from sociedad where sociedad.aceptada is NULL"))
         sociedades = []
@@ -201,10 +150,10 @@ def aceptar_sociedad(id):
             idActividad = bonita.buscarActividad(sociedades[0][6])
             print("___YA TENGO EL ID DE LA ACTIVIDAD___")
             bonita.asignarTarea(idActividad)
-            print("___YA ASIGNE LA TAREA AL ACTOR CON ID {}___".format(session["idActor"]))
-            bonita.setearVariable("valido", True, "java.lang.Boolean")
+            print("___YA ASIGNE LA TAREA AL ACTOR CON ID {}___".format(session["idUsuario"]))
+            bonita.setearVariable("valido", 'true', "java.lang.Boolean", sociedades[0][6])
             print("___YA SETEE LA VARIABLE VALIDO___")
-            print(bonita.consultarValorVariable("valido"))
+            print(bonita.consultarValorVariable("valido",sociedades[0][6]))
             bonita.actividadCompleta(idActividad)
             print("___COMPLETE LA ACTIVIDAD___")
 
@@ -248,20 +197,21 @@ def autenticacion():
     datos= request.form
     print(datos["username"])
     print(datos["password"])
+    #-------BONITA--------
     bonita.autenticacion(datos["username"],datos["password"])
     print(bonita.autenticacion(datos["username"], datos["password"]))
-    url = "http://localhost:8080/bonita/API/identity/user?f=userName=april.sanchez"
+    url = "http://localhost:8080/bonita/API/identity/user?f=userName={}".format(datos['username'])
     payload={}
     headers = {
-    'Cookie': session["Cookies-bonita"],
-    'X-Bonita-API-Token': session["X-Bonita-API-Token"]
+        'Cookie': session["Cookies-bonita"],
+        'X-Bonita-API-Token': session["X-Bonita-API-Token"]
     }
-
     response = requests.request("GET", url, headers=headers, data=payload)         
     idUser= response.json()[0]["id"]         
     print(idUser)
     session["idUsuario"]=idUser
     session["rol"]= "mesa_entrada"
+    
     #Si es mesa de entrada
     return redirect('/sociedades')
 
