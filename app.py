@@ -1,11 +1,14 @@
 from numbers import Number
 from threading import BrokenBarrierError
 
-from flask import Flask, request, jsonify, render_template
+from flask import Flask, request, jsonify, render_template, session, abort
+from flask.helpers import url_for
 from flask_sqlalchemy import SQLAlchemy
+from werkzeug.utils import redirect
 from flask_migrate import Migrate
 # from requests.sessions import session #aca no es from flask import sessions????
 from flask import session
+import requests
 
 # ------BONITA---------
 from sqlalchemy import text
@@ -24,7 +27,11 @@ migrate = Migrate(app, db)
 app.secret_key = 'esto-es-una-clave-muy-secreta'
 
 from models import Sociedad, Socio
+from helpers import auth
 
+def verificarSesion():
+    if not auth.authenticated(session):
+        abort(401)
 
 @app.route("/add")
 def add_sociedad():
@@ -51,7 +58,6 @@ def add_sociedad():
     except Exception as e:
         return str(e)
 
-
 @app.route("/getall")
 def get_all():
     try:
@@ -72,6 +78,7 @@ def get_by_id(id_):
 
 @app.route("/sociedades")
 def sociedades():
+    verificarSesion()
     try:
         result = db.session.execute(text("select * from sociedad where sociedad.aceptada is NULL"))
         sociedades = []
@@ -137,8 +144,7 @@ def add_sociedad_formulario():
                 raise Exception("Los porcentajes de los socios no suman 100%")
 
             # ------BONITA COMUNICACION-------
-            bonita.autenticacion('april.sanchez',
-                                 'bpm')  # aca deberia ir el username y pass del usuario que este logueado en el sistema
+            bonita.autenticacion('april.sanchez','bpm')  # aca deberia ir el username y pass del usuario que este logueado en el sistema
             print("___YA ME AUTENTIQUE___")
             bonita.getProcessId('Alta sociedades anonimas')
             print("___YA OBTUVE EL ID DEL PROCESO___")
@@ -156,6 +162,7 @@ def add_sociedad_formulario():
 
 @app.route("/aceptar/<id>", methods=['GET'])
 def aceptar_sociedad(id):
+    verificarSesion()
     try:
         if request.method == 'GET':
 
@@ -168,6 +175,7 @@ def aceptar_sociedad(id):
 
 @app.route("/rechazar/<id>", methods=['GET', 'POST'])
 def rechazar_sociedad(id):
+    verificarSesion()
     try:
         if request.method == 'POST':
 
@@ -194,6 +202,34 @@ def rechazar_sociedad(id):
 
     except Exception as e:
         return str(e)
+
+@app.route("/autenticacion", methods=["POST"])
+def autenticacion():
+    datos= request.form
+    print(datos["username"])
+    print(datos["password"])
+    bonita.autenticacion(datos["username"],datos["password"])
+    print(bonita.autenticacion(datos["username"], datos["password"]))
+    url = "http://localhost:8085/bonita/API/identity/user?f=userName=april.sanchez"
+
+    payload={}
+    headers = {
+    'Cookie': session["Cookies-bonita"],
+    'X-Bonita-API-Token': session["X-Bonita-API-Token"]
+    }
+
+    response = requests.request("GET", url, headers=headers, data=payload)         
+    idUser= response.json()[0]["id"]         
+    print(idUser)
+    session["idUsuario"]=idUser
+    session["rol"]= "mesa_entrada"
+    #Si es mesa de entrada
+    return redirect('/sociedades')
+
+@app.route("/login",methods=["GET"])
+def login():
+    return render_template("login.html")
+
 
 if __name__ == '__main__':
     app.run(port=5000, debug=True)
