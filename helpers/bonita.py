@@ -50,10 +50,7 @@ def iniciarProceso ():
 
     response = requests.request("POST", url, headers=headers, data=payload)
 
-    #aca deberiamos guardar el id del caso que viene en response
-    session["caseId"]  = response.json()["caseId"]
-
-    return True
+    return response.json()["caseId"]
 
 def setearVariable(nombreVariable, valorVariable, tipo):
     url = "http://localhost:8080/bonita/API/bpm/caseVariable/{}/{}".format(session['caseId'], nombreVariable)
@@ -84,8 +81,8 @@ def consultarValorVariable (nombreVariable):
 
     return response.json()["value"]
 
-def buscarActividad ():
-    url = "http://localhost:8080/bonita/API/bpm/task/?f=caseId={}".format(session["caseId"])
+def buscarActividad (caseId):
+    url = "http://localhost:8080/bonita/API/bpm/task/?f=caseId={}".format(caseId)
 
     payload={}
     headers = {
@@ -93,14 +90,13 @@ def buscarActividad ():
     }
 
     response = requests.request("GET", url, headers=headers, data=payload)
-    session["idActor"]  = response.json()["actorId"]
 
-    return response.json()["id"]
+    return response.json()[0]["id"]
 
 def asignarTarea (idActividad):
     url = "http://localhost:8080/bonita/API/bpm/userTask/{}".format(idActividad)
 
-    payload={"assigned_id": session["idActor"]}
+    payload={"assigned_id": session["idUsuario"]}
     headers = {
         "X-Bonita-API-Token":session["X-Bonita-API-Token"],
         'Content-Type': 'application/json',

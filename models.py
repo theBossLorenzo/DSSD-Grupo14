@@ -14,6 +14,7 @@ class Sociedad(db.Model):
     correo = db.Column(db.String())
     aceptada = db.Column(db.Boolean())
     comentario = db.Column(db.String())
+    caseId = db.Column(db.Integer)
 
     def __init__(self, nombre,estatuto,fecha_creacion,domicilio_legal,domicilio_real,representante,correo):
         self.nombre = nombre

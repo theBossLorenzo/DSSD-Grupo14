@@ -77,12 +77,14 @@ def add_sociedad_formulario():
                 raise Exception("Los porcentajes de los socios no suman 100%")
 
             # ------BONITA COMUNICACION-------
-            bonita.autenticacion('april.sanchez',
-                                 'bpm')  # aca deberia ir el username y pass del usuario que este logueado en el sistema
+            bonita.autenticacion('april.sanchez', 'bpm')  # aca deberia ir el username y pass del usuario que este logueado en el sistema
             print("___YA ME AUTENTIQUE___")
             bonita.getProcessId('Alta sociedades anonimas')
             print("___YA OBTUVE EL ID DEL PROCESO___")
-            bonita.iniciarProceso()
+            #db.session.execute(text("update sociedad set caseId = :valor where sociedad.id = :id"), {"id": sociedad.id, "valor": bonita.iniciarProceso()})
+            sociedad.caseId = bonita.iniciarProceso()
+            db.session.add(sociedad)
+            db.session.commit()
             print("___INICIE EL PROCESO___")
             bonita.setearVariable('emailApoderado', sociedad.correo, "java.lang.String")
             bonita.setearVariable('idProceso', str(session['idProcesoSA']), "java.lang.String")
@@ -118,7 +120,16 @@ def aceptar_sociedad(id):
             db.session.execute(text("update sociedad set aceptada = true where sociedad.id = :id"), {"id": int(id)})
             db.session.commit()
 
-            idActividad = bonita.buscarActividad()
+            #------BONITA------
+            result = db.session.execute(text("select * from sociedad where sociedad.id = :id"), {"id": int(id)})
+            sociedades = []
+
+            for row in result:
+                sociedad = [row['id'], row['nombre'], row['domicilio_legal'], row['domicilio_real'], row['correo'],
+                            row['estatuto'], row['caseId']]
+                sociedades.append(sociedad)
+
+            idActividad = bonita.buscarActividad(sociedades[0][6])
             print("___YA TENGO EL ID DE LA ACTIVIDAD___")
             bonita.asignarTarea(idActividad)
             print("___YA ASIGNE LA TAREA AL ACTOR CON ID {}___".format(session["idActor"]))
