@@ -120,4 +120,18 @@ def actividadCompleta (idActividad):
 
     return True
 
+def buscarIdUsuarioLogueado(username):
+    url = "http://localhost:8080/bonita/API/identity/user?f=userName={}".format(username)
+    payload={}
+    headers = {
+        'Cookie': session["Cookies-bonita"],
+        'X-Bonita-API-Token': session["X-Bonita-API-Token"]
+    }
+    response = requests.request("GET", url, headers=headers, data=payload)         
+    idUser= response.json()[0]["id"]         
+    session["idUsuario"]=idUser
+    session["rol"]= "mesa_entrada"
+
+    return True
+
 
