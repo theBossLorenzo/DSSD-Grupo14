@@ -1,5 +1,7 @@
 from app import db
 
+metadata = db.MetaData()
+
 class Socio(db.Model):
 
     __tablename__ = 'socio'

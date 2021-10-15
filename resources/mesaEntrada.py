@@ -1,10 +1,16 @@
 from flask import request, redirect, session, abort
+from flask.templating import render_template, redirect
 import helpers.auth as auth
 import helpers.bonita as bonita
 
 def verificarSesion():
     if not auth.authenticated(session):
         abort(401)
+
+def login():
+    if auth.authenticated(session):
+        return redirect("sociedades")
+    return render_template("login.html")
 
 def autenticacion():
     datos= request.form
