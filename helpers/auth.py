@@ -1,5 +1,5 @@
 from flask import session
-from models import Rol
+from models.rol import Rol
 
 def authenticated(session):
     return session.get("idUsuario")

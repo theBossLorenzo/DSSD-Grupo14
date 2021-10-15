@@ -1,5 +1,4 @@
-from flask import request, redirect, session, abort
-from flask.templating import render_template, redirect
+from flask import request, redirect, session, abort, render_template
 import helpers.auth as auth
 import helpers.bonita as bonita
 
