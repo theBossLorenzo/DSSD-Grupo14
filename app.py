@@ -17,8 +17,10 @@ import helpers.bonita as bonita
 
 app = Flask(__name__)
 #app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:valenPostgres@localhost:5432/DSSD14'
-app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:@localhost:5432/dssd14'
+#app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:@localhost:5432/dssd14'
 # app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:cabj1211@localhost:5432/DSSD14'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'postgres://cjabajiuznsurl:087dd820f87293e2a9bd9940f45ef75e815567e6acf62d40580ca993b21b86e4@ec2-54-156-151-232.compute-1.amazonaws.com:5432/dep6v9n6mfsk1f'
+
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
