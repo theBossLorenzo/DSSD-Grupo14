@@ -1,6 +1,6 @@
 from flask import request, redirect, session, abort, render_template
-import helpers.auth as auth
-import helpers.bonita as bonita
+import app.helpers.auth as auth
+import app.helpers.bonita as bonita
 
 def verificarSesion():
     if not auth.authenticated(session):
@@ -13,12 +13,9 @@ def login():
 
 def autenticacion():
     datos= request.form
-    print(datos["username"])
-    print(datos["password"])
     #-------BONITA--------
     bonita.autenticacion(datos["username"],datos["password"])
     bonita.buscarIdUsuarioLogueado(datos["username"])
-    
     #Si es mesa de entrada
     return redirect('/sociedades')
 

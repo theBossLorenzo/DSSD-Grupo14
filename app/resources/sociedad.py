@@ -1,14 +1,14 @@
 from flask import request, render_template, session, abort
-from models.sociedad import Sociedad
-from models.socio import Socio
-import helpers.auth as auth
-import helpers.bonita as bonita 
+from app.models.sociedad import Sociedad
+from app.models.socio import Socio
+import app.helpers.auth as auth
+import app.helpers.bonita as bonita 
 
 def verificarSesion():
     if not auth.authenticated(session):
         abort(401)
 
-def altaFormulario():
+def altaFormualrio():
     if request.method == 'POST':
         nombre = request.form.get('nombre')
         estatuto = request.form.get('estatuto')
@@ -36,6 +36,8 @@ def altaFormulario():
 
             if totalPorcentajes == 100:
                 Sociedad.guardar(sociedad)
+                '''db.session.add(sociedad)
+                db.session.commit()'''
                 for x in range(int(socios)):
                     nombre_socio = request.form.get('nombre_socio' + str(x))
                     apellido_socio = request.form.get('apellido_socio' + str(x))
@@ -47,11 +49,13 @@ def altaFormulario():
                         porcentaje=porcentaje_socio
                     )
                     Socio.guardar(socio)
-
+                    '''db.session.add(socio)
+                    db.session.commit()'''
                     if x == 0:
                         sociedad.representante = socio.id
                         Sociedad.actualizar(sociedad)
-
+                        '''db.session.add(sociedad)
+                        db.session.commit()'''
             else:
                 raise Exception("Los porcentajes de los socios no suman 100%")
 
@@ -70,6 +74,16 @@ def comunicacionBonita (sociedad):
     print("___YA OBTUVE EL ID DEL PROCESO___")
     sociedad.caseId = bonita.iniciarProceso()
     Sociedad.actualizar(sociedad)
+    '''db.session.add(sociedad)
+    db.session.commit()'''
+
+    '''result = db.session.execute(text("select * from sociedad where sociedad.id = :id"), {"id": sociedad.id})
+    sociedades = []
+
+    for row in result:
+        sociedad = [row['id'], row['nombre'], row['domicilio_legal'], row['domicilio_real'], row['correo'],
+                    row['estatuto'], row['caseId']]
+        sociedades.append(sociedad)'''
 
     print("___INICIE EL PROCESO___")
     bonita.setearVariable('emailApoderado', sociedad.correo, "java.lang.String", str(sociedad.caseId))
@@ -83,6 +97,13 @@ def comunicacionBonita (sociedad):
 def sociedades():
     verificarSesion()
     try:
+        '''result = db.session.execute(text("select * from sociedad where sociedad.aceptada is NULL"))
+        sociedades = []
+
+        for row in result:
+            sociedad = [row['id'], row['nombre'], row['domicilio_legal'], row['domicilio_real'], row['correo'],
+                        row['estatuto']]
+            sociedades.append(sociedad)'''
 
         sociedades = Sociedad.todos()
         soc=[]
@@ -90,7 +111,7 @@ def sociedades():
             soc.append({
                 'id':each.id,
                 'nombre':each.nombre,
-                'domicilio_legal':each.dimicilio_legal,
+                'domicilio_legal':each.domicilio_legal,
                 'domicilio_real':each.domicilio_real,
                 'correo':each.correo,
                 'estatuto': each.estatuto
@@ -107,6 +128,17 @@ def aceptar_sociedad(id):
 
             sociedad = Sociedad.buscarPorId(id)
             sociedad.aceptada = True
+            '''db.session.execute(text("update sociedad set aceptada = true where sociedad.id = :id"), {"id": int(id)})
+            db.session.commit()
+
+            #------BONITA------
+            result = db.session.execute(text("select * from sociedad where sociedad.id = :id"), {"id": int(id)})
+            sociedades = []
+
+            for row in result:
+                sociedad = [row['id'], row['nombre'], row['domicilio_legal'], row['domicilio_real'], row['correo'],
+                            row['estatuto'], row['caseId']]
+                sociedades.append(sociedad)'''
 
             aceptarSociedadBonita(sociedad.caseId)
             Sociedad.actualizar(sociedad)
@@ -137,25 +169,42 @@ def rechazar_sociedad(id):
             sociedad = Sociedad.buscarPorId(id)
             sociedad.comentario = comentario
             sociedad.aceptada = False
+            '''db.session.execute(text("update sociedad set aceptada = false, comentario = :comentario where sociedad.id = :id"), {"id": int(id), "comentario": comentario})
+            db.session.commit()
+
+            #------BONITA------
+            result = db.session.execute(text("select * from sociedad where sociedad.id = :id"), {"id": int(id)})
+            sociedades = []
+
+            for row in result:
+                sociedad = [row['id'], row['nombre'], row['domicilio_legal'], row['domicilio_real'], row['correo'],
+                            row['estatuto'], row['caseId']]
+                sociedades.append(sociedad)'''
+
 
             rechazarSociedadBonita (sociedad.caseId, comentario)
             Sociedad.actualizar(sociedad)
 
             return "Sociedad rechazada. Sociedad id={}".format(id)
         else:
-            sociedades = Sociedad.todos()
-            soc=[]
-            for each in sociedades:
-                soc.append({
-                    'id':each.id,
-                    'nombre':each.nombre,
-                    'domicilio_legal':each.dimicilio_legal,
-                    'domicilio_real':each.domicilio_real,
-                    'correo':each.correo,
-                    'estatuto': each.estatuto
-                })
+            '''result = db.session.execute(text("select * from sociedad where sociedad.id = :id"), {"id": int(id)})
+            sociedades = []
 
-            return render_template("rechazar_sociedad.html", sociedades=soc)
+            for row in result:
+                sociedad = [row['id'], row['nombre'], row['domicilio_legal'], row['domicilio_real'], row['correo'],
+                        row['estatuto']]
+                sociedades.append(sociedad)'''
+            sociedad = Sociedad.buscarPorId(id)
+            soc={
+                    'id':sociedad.id,
+                    'nombre':sociedad.nombre,
+                    'domicilio_legal':sociedad.domicilio_legal,
+                    'domicilio_real':sociedad.domicilio_real,
+                    'correo':sociedad.correo,
+                    'estatuto': sociedad.estatuto
+                }
+
+            return render_template("rechazar_sociedad.html", s=soc)
 
     except Exception as e:
         return str(e)

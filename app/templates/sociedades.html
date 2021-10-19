@@ -17,6 +17,9 @@
     <div class="container">
 
         <div class="container">
+            <div style="float: right; margin-top: 0.5%;">
+                <a href="{{url_for("logout")}}" class="btn btn-primary" >Cerrar sesion</a>
+            </div>
             <br>
             <br>
 
@@ -25,9 +28,13 @@
             </div>
             <br>
              <div class="row align-items-center justify-content-center">
-                <h3>Rechazar Sociedad</h3>
+                <h3>Sociedades Anonimas</h3>
+            </div>
+            <div class="row align-items-center justify-content-center">
+                <h4>Estado "Pendientes"</h4>
             </div>
 
+            <br>
             <br>
             <br>
 
@@ -37,36 +44,24 @@
                     <th scope="col">Nombre</th>
                     <th scope="col">Correo</th>
                     <th scope="col">Domicilio legal</th>
+                    <th scope="col"></th>
+                    <th scope="col"></th>
 
                 </tr>
                 </thead>
                 <tbody>
-                    {% for s in sociedades %}
+                {% for s in sociedades %}
                     <tr>
-                        <td>{{ s[1] }}</td>
-                        <td>{{ s[4] }}</td>
-                        <td>{{ s[3] }}</td>
+                        <td>{{ s.nombre }}</td>
+                        <td>{{ s.correo }}</td>
+                        <td>{{ s.domicilio_legal }}</td>
+                        <td><a href="{{url_for('aceptar_sociedad', id=s.id)}}" class="btn btn-success">Aceptar</a></td>
+                        <td><a href="{{url_for('rechazar_sociedad', id=s.id)}}" class="btn btn-danger">Rechazar</a></td>
                     </tr>
-                    {% endfor %}
+                {% endfor %}
                 </tbody>
             </table>
             <br>
-            <form id="comentario" method="POST">
-                {% for s in sociedades %}
-                <input id="id" name="id" type="hidden" value="{{ s[0] }}">
-                {% endfor %}
-                <div class="form-row">
-                    <textarea placeholder="Comentarios sobre el rechazo" name="comentario" cols="90" rows="5"></textarea>
-                </div>
-                <br>
-                <div class="form-row">
-                    <input class="btn btn-primary" type="submit" value="Rechazar">
-                </div>
-
-                <br>
-
-
-            </form>
         </div>
     </div>
 

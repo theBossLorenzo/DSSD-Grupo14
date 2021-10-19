@@ -5,7 +5,7 @@ import json
 from requests.api import request
 
 def autenticacion (username, password):
-    url = "http://localhost:8080/bonita/loginservice"
+    url = "http://localhost:8085/bonita/loginservice"
 
     payload='username={}&password={}&redirect=false'.format(username,password)
     headers = {
@@ -24,7 +24,7 @@ def autenticacion (username, password):
         return False
 
 def getProcessId (nombreProceso):
-    url = "http://localhost:8080/bonita/API/bpm/process?name={}".format(nombreProceso)
+    url = "http://localhost:8085/bonita/API/bpm/process?name={}".format(nombreProceso)
 
     payload={}
     headers = {
@@ -40,7 +40,7 @@ def getProcessId (nombreProceso):
     return True
 
 def iniciarProceso ():
-    url = "http://localhost:8080/bonita/API/bpm/process/{}/instantiation".format(session['idProcesoSA'])
+    url = "http://localhost:8085/bonita/API/bpm/process/{}/instantiation".format(session['idProcesoSA'])
 
     payload={}
     headers = {
@@ -53,7 +53,7 @@ def iniciarProceso ():
     return response.json()["caseId"]
 
 def setearVariable(nombreVariable, valorVariable, tipo, caseId):
-    url = "http://localhost:8080/bonita/API/bpm/caseVariable/{}/{}".format(caseId, nombreVariable)
+    url = "http://localhost:8085/bonita/API/bpm/caseVariable/{}/{}".format(caseId, nombreVariable)
 
     payload = json.dumps({
     "value": valorVariable,
@@ -70,7 +70,7 @@ def setearVariable(nombreVariable, valorVariable, tipo, caseId):
     return True
 
 def consultarValorVariable (nombreVariable, caseId):
-    url = "http://localhost:8080/bonita/API/bpm/caseVariable/{}/{}".format(caseId, nombreVariable)
+    url = "http://localhost:8085/bonita/API/bpm/caseVariable/{}/{}".format(caseId, nombreVariable)
 
     payload={}
     headers = {
@@ -82,7 +82,7 @@ def consultarValorVariable (nombreVariable, caseId):
     return response.json()["value"]
 
 def buscarActividad (caseId):
-    url = "http://localhost:8080/bonita/API/bpm/task/?f=caseId={}".format(caseId)
+    url = "http://localhost:8085/bonita/API/bpm/task/?f=caseId={}".format(caseId)
 
     payload={}
     headers = {
@@ -94,7 +94,7 @@ def buscarActividad (caseId):
     return response.json()[0]["id"]
 
 def asignarTarea (idActividad):
-    url = "http://localhost:8080/bonita/API/bpm/userTask/{}".format(idActividad)
+    url = "http://localhost:8085/bonita/API/bpm/userTask/{}".format(idActividad)
 
     payload={"assigned_id": session["idUsuario"]}
     headers = {
@@ -108,7 +108,7 @@ def asignarTarea (idActividad):
     return True
 
 def actividadCompleta (idActividad):
-    url = "http://localhost:8080/bonita/API/bpm/activity/{}".format(idActividad)
+    url = "http://localhost:8085/bonita/API/bpm/activity/{}".format(idActividad)
 
     payload={}
     headers = {
@@ -121,14 +121,15 @@ def actividadCompleta (idActividad):
     return True
 
 def buscarIdUsuarioLogueado(username):
-    url = "http://localhost:8080/bonita/API/identity/user?f=userName={}".format(username)
+    url = "http://localhost:8085/bonita/API/identity/user?f=userName={}".format(username)
     payload={}
     headers = {
         'Cookie': session["Cookies-bonita"],
         'X-Bonita-API-Token': session["X-Bonita-API-Token"]
     }
     response = requests.request("GET", url, headers=headers, data=payload)         
-    idUser= response.json()[0]["id"]         
+    idUser= response.json()[0]["id"]        
+    print(idUser) 
     session["idUsuario"]=idUser
     session["rol"]= "mesa_entrada"
 
