@@ -55,4 +55,7 @@ class Sociedad(db.Model):
 
     def todos():
         return  Sociedad.query.all()
+    
+    def pendientes():
+        return  Sociedad.query.filter_by(aceptada=None)
                 
