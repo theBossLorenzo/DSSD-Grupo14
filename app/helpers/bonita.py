@@ -120,4 +120,56 @@ def actividadCompleta (idActividad):
 
     return True
 
+def buscarIdUsuarioLogueado(username):
+
+    url = "http://localhost:8080/bonita/API/identity/role?f=name=MesaEntrada"
+
+    payload={}
+    headers = {
+    'X-Bonita-API-Token': session["X-Bonita-API-Token"],
+    'Cookie': session["Cookies-bonita"]
+    }
+
+    response = requests.request("GET", url, headers=headers, data=payload)
+    idMesa=response.json()[0]["id"]
+
+    url = "http://localhost:8080/bonita/API/identity/role?f=name=AreaLegales"
+
+    payload={}
+    headers = {
+    'X-Bonita-API-Token': session["X-Bonita-API-Token"],
+    'Cookie': session["Cookies-bonita"]
+    }
+
+    response = requests.request("GET", url, headers=headers, data=payload)
+    idLegales=response.json()[0]["id"]
+
+    url = "http://localhost:8080/bonita/API/identity/user?f=userName={}".format(username)
+    payload={}
+    headers = {
+        'Cookie': session["Cookies-bonita"],
+        'X-Bonita-API-Token': session["X-Bonita-API-Token"]
+    }
+    response = requests.request("GET", url, headers=headers, data=payload)         
+    idUser= response.json()[0]["id"]        
+
+    url = "http://localhost:8080/bonita/API/identity/membership?f=user_id={}".format(idUser)
+
+    payload={}
+    headers = {
+    'X-Bonita-API-Token': session["X-Bonita-API-Token"],
+    'Cookie': session["Cookies-bonita"]
+    }
+
+    response = requests.request("GET", url, headers=headers, data=payload)
+    id_rol= response.json()[0]["role_id"]
+    
+    session["idUsuario"]=idUser
+    if (id_rol == idMesa):
+        session["rol"]= "mesa_entrada"
+    elif id_rol == idLegales:
+        session["rol"]= "area_legales"
+
+    return True
+
 
