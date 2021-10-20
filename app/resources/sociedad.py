@@ -1,8 +1,10 @@
 from flask import request, render_template, session, abort
+import requests
 from app.models.sociedad import Sociedad
 from app.models.socio import Socio
 import app.helpers.auth as auth
 import app.helpers.bonita as bonita 
+import app.helpers.API_estampillado as estampillado
 
 def verificarSesion():
     if not auth.authenticated(session):
@@ -53,10 +55,12 @@ def altaFormualrio():
 
             # ------BONITA COMUNICACION-------
             if (comunicacionBonita(sociedad)):
+                nroExpediente = len(Sociedad.todos()) + 1
+                sociedad.nroExpediente = nroExpediente
                 Sociedad.guardar(sociedad)
                 return "Sociedad agregada. Sociedad id={}".format(sociedad.id)
             else:
-                return 'Fallo en la comunicacion con Bonita'
+                return 'Falla en la comunicacion con Bonita'
         except Exception as e:
             return str(e)
     return render_template("crear_sociedad.html")
@@ -110,29 +114,35 @@ def aceptar_sociedad(id):
             sociedad = Sociedad.buscarPorId(id)
             sociedad.aceptada = True
 
-            aceptarSociedadBonita(sociedad.caseId)
-            Sociedad.actualizar(sociedad)
+            if (aceptarSociedadBonita(sociedad.caseId)):
+                Sociedad.actualizar(sociedad)
 
-            return "Sociedad aceptada. Sociedad id={}".format(id)
+                return "Sociedad aceptada. Sociedad id={}".format(id)
+            else:
+                return "Falla en la comunicacion con Bonita"
     except Exception as e:
         return str(e)
 
 def aceptarSociedadBonita (caseId):
-    idActividad = bonita.buscarActividad(caseId)
-    print("___YA TENGO EL ID DE LA ACTIVIDAD___")
-    bonita.asignarTarea(idActividad)
-    print("___YA ASIGNE LA TAREA AL ACTOR CON ID {}___".format(session["idUsuario"]))
-    bonita.setearVariable("valido", 'true', "java.lang.Boolean", caseId)
-    print("___YA SETEE LA VARIABLE VALIDO___")
-    print(bonita.consultarValorVariable("valido",caseId))
-    bonita.actividadCompleta(idActividad)
-    print("___COMPLETE LA ACTIVIDAD___")
+    try:
+        idActividad = bonita.buscarActividad(caseId)
+        print("___YA TENGO EL ID DE LA ACTIVIDAD___")
+        bonita.asignarTarea(idActividad)
+        print("___YA ASIGNE LA TAREA AL ACTOR CON ID {}___".format(session["idUsuario"]))
+        bonita.setearVariable("registroValido", 'true', "java.lang.Boolean", caseId)
+        print("___YA SETEE LA VARIABLE VALIDO___")
+        print(bonita.consultarValorVariable("valido",caseId))
+        bonita.actividadCompleta(idActividad)
+        print("___COMPLETE LA ACTIVIDAD___")
+
+        return True
+    except:
+        return False
 
 def rechazar_sociedad(id):
     verificarSesion()
     try:
-        if request.method == 'POST':
-
+        if (request.method == "POST"):
             comentario = request.form.get('comentario')
             id = request.form.get('id')
 
@@ -140,10 +150,12 @@ def rechazar_sociedad(id):
             sociedad.comentario = comentario
             sociedad.aceptada = False
 
-            rechazarSociedadBonita (sociedad.caseId, comentario)
-            Sociedad.actualizar(sociedad)
+            if (rechazarSociedadBonita (sociedad.caseId, comentario)):
+                Sociedad.actualizar(sociedad)
 
-            return "Sociedad rechazada. Sociedad id={}".format(id)
+                return "Sociedad rechazada. Sociedad id={}".format(id)
+            else:
+                return "Falla en la comunicacion con Bonita"
         else:
             sociedad = Sociedad.buscarPorId(id)
             soc={
@@ -161,17 +173,22 @@ def rechazar_sociedad(id):
         return str(e)
 
 def rechazarSociedadBonita (caseId, comentario):
-    idActividad = bonita.buscarActividad(caseId)
-    print("___YA TENGO EL ID DE LA ACTIVIDAD___")
-    bonita.asignarTarea(idActividad)
-    print("___YA ASIGNE LA TAREA AL ACTOR CON ID {}___".format(session["idUsuario"]))
-    bonita.setearVariable("valido", 'false', "java.lang.Boolean", caseId)
-    bonita.setearVariable("informeRegistro", comentario, "java.lang.String", caseId)
-    print("___YA SETEE LAS VARIABLES")
-    print(bonita.consultarValorVariable("valido",caseId))
-    print(bonita.consultarValorVariable("informeRegistro",caseId))
-    bonita.actividadCompleta(idActividad)
-    print("___COMPLETE LA ACTIVIDAD___")
+    try:
+        idActividad = bonita.buscarActividad(caseId)
+        print("___YA TENGO EL ID DE LA ACTIVIDAD___")
+        bonita.asignarTarea(idActividad)
+        print("___YA ASIGNE LA TAREA AL ACTOR CON ID {}___".format(session["idUsuario"]))
+        bonita.setearVariable("registroValido", 'false', "java.lang.Boolean", caseId)
+        bonita.setearVariable("informeRegistro", comentario, "java.lang.String", caseId)
+        print("___YA SETEE LAS VARIABLES")
+        print(bonita.consultarValorVariable("registroValido",caseId))
+        print(bonita.consultarValorVariable("informeRegistro",caseId))
+        bonita.actividadCompleta(idActividad)
+        print("___COMPLETE LA ACTIVIDAD___")
+
+        return True
+    except:
+        return False
 
 def mostrar_estatutos():
     verificarSesion()
@@ -186,6 +203,11 @@ def mostrar_estatutos():
         })
     return render_template("estatutos.html", estatutos = solicitudPost)
 
-def estampillar():
-    #Comunicacion con el web service
-    pass
+def estampillar(id):
+    sociedad = Sociedad.buscarPorId(id)
+    estampillado.autenticacion('valentin', '123')
+    print('__Ya me autentique__')
+    sociedad.estampillado = estampillado.generarEstampillado('123','valentin')
+    print('__Ya genere estammpillado__')
+    Sociedad.actualizar(sociedad)
+    return "Ya se genero estampillado de la Sociedad Anonima con id={}".format(sociedad.id)

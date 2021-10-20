@@ -35,7 +35,7 @@ def create_app(environment="development"):
     app.add_url_rule("/logout", "logout", autenticacionEmpleados.logout)
     app.add_url_rule("/sociedades", "sociedades", sociedad.sociedades)
     app.add_url_rule("/aceptar_sociedad/<id>", "aceptar_sociedad", sociedad.aceptar_sociedad)
-    app.add_url_rule("/rechazar_sociedad/<id>", "rechazar_sociedad", sociedad.rechazar_sociedad, methods=["GET","POST"])
+    app.add_url_rule("/rechazar_sociedad/<id>", "rechazar_sociedad", sociedad.rechazar_sociedad, methods=["GET", "POST"])
     app.add_url_rule("/estatutos", "estatutos", sociedad.mostrar_estatutos)
     app.add_url_rule("/estampillar/<id>", "estampillar", sociedad.estampillar)
 
