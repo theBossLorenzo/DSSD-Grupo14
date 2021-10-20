@@ -63,7 +63,7 @@ def altaFormualrio():
 
 def comunicacionBonita (sociedad):
     try:
-        bonita.autenticacion('jan.fisher', 'bpm')
+        bonita.autenticacion('bruno', 'bpm')
         print("___YA ME AUTENTIQUE___")
         bonita.getProcessId('Alta sociedades anonimas')
         print("___YA OBTUVE EL ID DEL PROCESO___")
@@ -172,3 +172,20 @@ def rechazarSociedadBonita (caseId, comentario):
     print(bonita.consultarValorVariable("informeRegistro",caseId))
     bonita.actividadCompleta(idActividad)
     print("___COMPLETE LA ACTIVIDAD___")
+
+def mostrar_estatutos():
+    verificarSesion()
+    solicitudes = Sociedad.getEstatutos()
+    solicitudPost = []
+    for each in solicitudes:
+        solicitudPost.append({
+            'id': each.id,
+            'estatuto': each.estatuto,
+            'nombre': each.nombre,
+            'correo': each.correo,
+        })
+    return render_template("estatutos.html", estatutos = solicitudPost)
+
+def estampillar():
+    #Comunicacion con el web service
+    pass

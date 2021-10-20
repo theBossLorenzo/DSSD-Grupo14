@@ -5,7 +5,7 @@ from config import config
 from app.db import db
 from flask_migrate import Migrate
 from app.helpers import handler 
-from app.resources import sociedad,mesaEntrada
+from app.resources import sociedad,autenticacionEmpleados
 #from flask_migrate import Migrate
 
 
@@ -30,12 +30,14 @@ def create_app(environment="development"):
     #ACA HAY QUE PONER LAS RUTAS QUE DEBEN LLAMAR A LOS METODOS QUE TENEMOS EN RESOURCES
     #app.add_url_rule("/ruta", "nombre para invocar a la ruta", "invocacion metodo", "decir tipo de envio (opcional)")
     app.add_url_rule("/", "index", sociedad.altaFormualrio, methods=['GET','POST'])
-    app.add_url_rule("/login", "login", mesaEntrada.login)
-    app.add_url_rule("/autenticacion", "autenticacion", mesaEntrada.autenticacion, methods=["POST"])
-    app.add_url_rule("/logout", "logout", mesaEntrada.logout)
+    app.add_url_rule("/login", "login", autenticacionEmpleados.login)
+    app.add_url_rule("/autenticacion", "autenticacion", autenticacionEmpleados.autenticacion, methods=["POST"])
+    app.add_url_rule("/logout", "logout", autenticacionEmpleados.logout)
     app.add_url_rule("/sociedades", "sociedades", sociedad.sociedades)
     app.add_url_rule("/aceptar_sociedad/<id>", "aceptar_sociedad", sociedad.aceptar_sociedad)
     app.add_url_rule("/rechazar_sociedad/<id>", "rechazar_sociedad", sociedad.rechazar_sociedad, methods=["GET","POST"])
+    app.add_url_rule("/estatutos", "estatutos", sociedad.mostrar_estatutos)
+    app.add_url_rule("/estampillar/<id>", "estampillar", sociedad.estampillar)
 
     # Ruta para el Home (usando decorator)
     @app.route("/")

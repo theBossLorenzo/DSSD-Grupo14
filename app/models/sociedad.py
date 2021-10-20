@@ -16,6 +16,8 @@ class Sociedad(db.Model):
     aceptada = db.Column(db.Boolean())
     comentario = db.Column(db.String())
     caseId = db.Column(db.Integer)
+    nroExpediente = db.Column(db.Integer)
+    estampillado = db.Column(db.String())
 
     def __init__(self, nombre,estatuto,fecha_creacion,domicilio_legal,domicilio_real,representante,correo):
         self.nombre = nombre
@@ -58,4 +60,7 @@ class Sociedad(db.Model):
     
     def pendientes():
         return  Sociedad.query.filter_by(aceptada=None)
+
+    def getEstatutos():
+        return Sociedad.query.filter_by(aceptada = True)
                 
