@@ -38,6 +38,7 @@ def create_app(environment="development"):
     app.add_url_rule("/rechazar_sociedad/<id>", "rechazar_sociedad", sociedad.rechazar_sociedad, methods=["GET", "POST"])
     app.add_url_rule("/estatutos", "estatutos", sociedad.mostrar_estatutos)
     app.add_url_rule("/estampillar/<id>", "estampillar", sociedad.estampillar)
+    app.add_url_rule("/rechazar_estatuto/<id>", "rechazar_estatuto", sociedad.rechazar_estatuto)
 
     # Ruta para el Home (usando decorator)
     @app.route("/")
