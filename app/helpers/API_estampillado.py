@@ -23,7 +23,7 @@ def autenticacion(username, password):
         return False
 
 def generarEstampillado(nroExpediente, estatuto):
-    url = "http://localhost:5005/API/estampillado?nro expediente={}&username={}".format(nroExpediente,estatuto) #ruta API de prueba porque la del rpyecto tambien corre en puerto 5000
+    url = "http://localhost:5005/API/estampillado?nro expediente={}&estatuto={}".format(nroExpediente,estatuto) #ruta API de prueba porque la del rpyecto tambien corre en puerto 5000
 
     payload={}
     headers = {

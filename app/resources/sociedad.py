@@ -208,7 +208,7 @@ def estampillar(id):
     sociedad.estatuto_aceptado = True
     if (aceptarEstatutoBonita(sociedad.caseId)):
         Sociedad.actualizar(sociedad)
-        if (estampillado.autenticacion('valentin', '123')):
+        if (estampillado.autenticacion('area_legales', 'dssdGrupo14')):
             print('__Ya me autentique__')
             sociedad.estampillado = estampillado.generarEstampillado('123','valentin')
             print('__Ya genere estammpillado__')
