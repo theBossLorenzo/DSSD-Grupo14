@@ -63,5 +63,5 @@ class Sociedad(db.Model):
         return  Sociedad.query.filter_by(aceptada=None)
 
     def getEstatutos():
-        return Sociedad.query.filter_by(estatuto_aceptado = None)
+        return Sociedad.query.filter_by(estatuto_aceptado = None, aceptada = True)
                 
