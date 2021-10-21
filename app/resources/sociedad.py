@@ -55,6 +55,7 @@ def altaFormualrio():
             if (comunicacionBonita(sociedad)):
                 nroExpediente = len(Sociedad.todos()) + 1
                 sociedad.nroExpediente = nroExpediente
+                print(sociedad.nroExpediente)
                 Sociedad.guardar(sociedad)
                 return "Sociedad agregada. Sociedad id={}".format(sociedad.id)
             else:
@@ -212,7 +213,7 @@ def estampillar(id):
         Sociedad.actualizar(sociedad)
         if (estampillado.autenticacion('area_legales', 'dssdGrupo14')):
             print('__Ya me autentique__')
-            sociedad.estampillado = estampillado.generarEstampillado('123','valentin')
+            sociedad.estampillado = estampillado.generarEstampillado(sociedad.nroExpediente, sociedad.estatuto)
             print('__Ya genere estammpillado__')
             Sociedad.actualizar(sociedad)
             return "Ya se genero estampillado de la Sociedad Anonima con id={}".format(sociedad.id)
