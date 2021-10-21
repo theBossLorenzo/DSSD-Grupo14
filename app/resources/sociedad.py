@@ -205,12 +205,82 @@ def mostrar_estatutos():
 
 def estampillar(id):
     sociedad = Sociedad.buscarPorId(id)
-    try:
-        estampillado.autenticacion('area_legales', 'dssdGrupo14')
-        print('__Ya me autentique__')
-        sociedad.estampillado = estampillado.generarEstampillado(sociedad.nroExpediente, sociedad.estatuto)
-        print('__Ya genere estammpillado__')
+    sociedad.estatuto_aceptado = True
+    if (aceptarEstatutoBonita(sociedad.caseId)):
         Sociedad.actualizar(sociedad)
-        return "Ya se genero estampillado de la Sociedad Anonima con id={}".format(sociedad.id)
+        if (estampillado.autenticacion('valentin', '123')):
+            print('__Ya me autentique__')
+            sociedad.estampillado = estampillado.generarEstampillado('123','valentin')
+            print('__Ya genere estammpillado__')
+            Sociedad.actualizar(sociedad)
+            return "Ya se genero estampillado de la Sociedad Anonima con id={}".format(sociedad.id)
+        else:
+            return "Falla en la comunicacion con API que genera estampillado"
+    else:
+        return "Falla en la comunicacion con Bonita"
+
+def aceptarEstatutoBonita (caseId):
+    try:
+        idActividad = bonita.buscarActividad(caseId)
+        print("___YA TENGO EL ID DE LA ACTIVIDAD___")
+        bonita.asignarTarea(idActividad)
+        print("___YA ASIGNE LA TAREA AL ACTOR CON ID {}___".format(session["idUsuario"]))
+        bonita.setearVariable("EstatutoValido", 'true', "java.lang.Boolean", caseId)
+        print("___YA SETEE LA VARIABLE VALIDO___")
+        print(bonita.consultarValorVariable("valido",caseId))
+        bonita.actividadCompleta(idActividad)
+        print("___COMPLETE LA ACTIVIDAD___")
+
+        return True
     except:
-        return "Falla en la comunicacion con la API que genera el estampillado"
+        return False
+
+def rechazar_estatuto(id):
+    verificarSesion()
+    try:
+        if (request.method == "POST"):
+            comentario = request.form.get('comentario')
+            id = request.form.get('id')
+
+            sociedad = Sociedad.buscarPorId(id)
+            sociedad.comentarioAL = comentario
+            sociedad.estatuto_aceptado = False
+
+            if (rechazarEstatutoBonita (sociedad.caseId, comentario)):
+                Sociedad.actualizar(sociedad)
+
+                return "Estatuto rechazada. Sociedad id={}".format(id)
+            else:
+                return "Falla en la comunicacion con Bonita"
+        else:
+            sociedad = Sociedad.buscarPorId(id)
+            soc={
+                    'id':sociedad.id,
+                    'nombre':sociedad.nombre,
+                    'domicilio_legal':sociedad.domicilio_legal,
+                    'domicilio_real':sociedad.domicilio_real,
+                    'correo':sociedad.correo,
+                    'estatuto': sociedad.estatuto
+                }
+
+            return render_template("rechazar_estatuto.html", s=soc)
+
+    except Exception as e:
+        return str(e)
+
+def rechazarEstatutoBonita (caseId, comentario):
+    try:
+        idActividad = bonita.buscarActividad(caseId)
+        print("___YA TENGO EL ID DE LA ACTIVIDAD___")
+        bonita.asignarTarea(idActividad)
+        print("___YA ASIGNE LA TAREA AL ACTOR CON ID {}___".format(session["idUsuario"]))
+        bonita.setearVariable("estatutoValido", 'false', "java.lang.Boolean", caseId)
+        bonita.setearVariable("informeEstatuto", comentario, "java.lang.String", caseId)
+        print("___YA SETEE LAS VARIABLES")
+        print(bonita.consultarValorVariable("registroValido",caseId))
+        print(bonita.consultarValorVariable("informeRegistro",caseId))
+        bonita.actividadCompleta(idActividad)
+        print("___COMPLETE LA ACTIVIDAD___")
+        return True
+    except:
+        return False
