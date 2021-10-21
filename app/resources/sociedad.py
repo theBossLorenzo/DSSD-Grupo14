@@ -205,9 +205,12 @@ def mostrar_estatutos():
 
 def estampillar(id):
     sociedad = Sociedad.buscarPorId(id)
-    estampillado.autenticacion('valentin', '123')
-    print('__Ya me autentique__')
-    sociedad.estampillado = estampillado.generarEstampillado('123','valentin')
-    print('__Ya genere estammpillado__')
-    Sociedad.actualizar(sociedad)
-    return "Ya se genero estampillado de la Sociedad Anonima con id={}".format(sociedad.id)
+    try:
+        estampillado.autenticacion('area_legales', 'dssdGrupo14')
+        print('__Ya me autentique__')
+        sociedad.estampillado = estampillado.generarEstampillado(sociedad.nroExpediente, sociedad.estatuto)
+        print('__Ya genere estammpillado__')
+        Sociedad.actualizar(sociedad)
+        return "Ya se genero estampillado de la Sociedad Anonima con id={}".format(sociedad.id)
+    except:
+        return "Falla en la comunicacion con la API que genera el estampillado"
