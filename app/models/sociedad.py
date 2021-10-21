@@ -19,6 +19,7 @@ class Sociedad(db.Model):
     estampillado = db.Column(db.String())
     estatuto_aceptado = db.Column(db.Boolean())
     comentarioAL = db.Column(db.String()) 
+    nroExpediente = db.Column(db.Integer)
 
     def __init__(self, nombre,estatuto,fecha_creacion,domicilio_legal,domicilio_real,representante,correo):
         self.nombre = nombre
