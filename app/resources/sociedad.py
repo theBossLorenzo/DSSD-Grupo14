@@ -208,12 +208,16 @@ def estampillar(id):
     sociedad.estatuto_aceptado = True
     if (aceptarEstatutoBonita(sociedad.caseId)):
         Sociedad.actualizar(sociedad)
-    estampillado.autenticacion('valentin', '123')
-    print('__Ya me autentique__')
-    sociedad.estampillado = estampillado.generarEstampillado('123','valentin')
-    print('__Ya genere estammpillado__')
-    Sociedad.actualizar(sociedad)
-    return "Ya se genero estampillado de la Sociedad Anonima con id={}".format(sociedad.id)
+        if (estampillado.autenticacion('valentin', '123')):
+            print('__Ya me autentique__')
+            sociedad.estampillado = estampillado.generarEstampillado('123','valentin')
+            print('__Ya genere estammpillado__')
+            Sociedad.actualizar(sociedad)
+            return "Ya se genero estampillado de la Sociedad Anonima con id={}".format(sociedad.id)
+        else:
+            return "Falla en la comunicacion con API que genera estampillado"
+    else:
+        return "Falla en la comunicacion con Bonita"
 
 def aceptarEstatutoBonita (caseId):
     try:
