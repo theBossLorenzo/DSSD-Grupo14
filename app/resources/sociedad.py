@@ -5,10 +5,8 @@ from app.models.socio import Socio
 import app.helpers.auth as auth
 import app.helpers.bonita as bonita 
 import app.helpers.API_estampillado as estampillado
+from app.resources.autenticacionEmpleados import verificarSesionAL, verificarSesionME
 
-def verificarSesion():
-    if not auth.authenticated(session):
-        abort(401)
 
 def altaFormualrio():
     if request.method == 'POST':
@@ -67,11 +65,13 @@ def altaFormualrio():
 
 def comunicacionBonita (sociedad):
     try:
+        print('__PRIMER COMUNICACION CON BONITA__')
         bonita.autenticacion('bruno', 'bpm')
         print("___YA ME AUTENTIQUE___")
         bonita.getProcessId('Alta sociedades anonimas')
         print("___YA OBTUVE EL ID DEL PROCESO___")
         sociedad.caseId = bonita.iniciarProceso()
+        print('__CASE ID: ' + str(sociedad.caseId))
         Sociedad.actualizar(sociedad)
         print("___INICIE EL PROCESO___")
         bonita.setearVariable('emailApoderado', sociedad.correo, "java.lang.String", str(sociedad.caseId))
@@ -85,7 +85,7 @@ def comunicacionBonita (sociedad):
         return False
 
 def sociedades():
-    verificarSesion()
+    verificarSesionME()
     try:
         sociedades = Sociedad.pendientes()
         if (sociedades is not None):
@@ -107,7 +107,7 @@ def sociedades():
         return str(e)
 
 def aceptar_sociedad(id):
-    verificarSesion()
+    verificarSesionME()
     try:
         if request.method == 'GET':
 
@@ -125,13 +125,14 @@ def aceptar_sociedad(id):
 
 def aceptarSociedadBonita (caseId):
     try:
+        print('__ACEPTAR SOCIEDAD BONITA__')
         idActividad = bonita.buscarActividad(caseId)
         print("___YA TENGO EL ID DE LA ACTIVIDAD___")
         bonita.asignarTarea(idActividad)
         print("___YA ASIGNE LA TAREA AL ACTOR CON ID {}___".format(session["idUsuario"]))
         bonita.setearVariable("registroValido", 'true', "java.lang.Boolean", caseId)
         print("___YA SETEE LA VARIABLE VALIDO___")
-        print(bonita.consultarValorVariable("valido",caseId))
+        print(bonita.consultarValorVariable("registroValido",caseId))
         bonita.actividadCompleta(idActividad)
         print("___COMPLETE LA ACTIVIDAD___")
 
@@ -140,7 +141,7 @@ def aceptarSociedadBonita (caseId):
         return False
 
 def rechazar_sociedad(id):
-    verificarSesion()
+    verificarSesionME()
     try:
         if (request.method == "POST"):
             comentario = request.form.get('comentario')
@@ -174,6 +175,7 @@ def rechazar_sociedad(id):
 
 def rechazarSociedadBonita (caseId, comentario):
     try:
+        print('__RECHAZAR SOCIEDAD BONITA__')
         idActividad = bonita.buscarActividad(caseId)
         print("___YA TENGO EL ID DE LA ACTIVIDAD___")
         bonita.asignarTarea(idActividad)
@@ -191,7 +193,7 @@ def rechazarSociedadBonita (caseId, comentario):
         return False
 
 def mostrar_estatutos():
-    verificarSesion()
+    verificarSesionAL()
     solicitudes = Sociedad.getEstatutos()
     solicitudPost = []
     for each in solicitudes:
@@ -221,13 +223,14 @@ def estampillar(id):
 
 def aceptarEstatutoBonita (caseId):
     try:
+        print('__ACEPTAR ESTATUTO BONITA__')
         idActividad = bonita.buscarActividad(caseId)
         print("___YA TENGO EL ID DE LA ACTIVIDAD___")
         bonita.asignarTarea(idActividad)
         print("___YA ASIGNE LA TAREA AL ACTOR CON ID {}___".format(session["idUsuario"]))
-        bonita.setearVariable("EstatutoValido", 'true', "java.lang.Boolean", caseId)
-        print("___YA SETEE LA VARIABLE VALIDO___")
-        print(bonita.consultarValorVariable("valido",caseId))
+        bonita.setearVariable("estatutoValido", 'true', "java.lang.Boolean", caseId)
+        print("___YA SETEE LA VARIABLE ESTATUTO VALIDO___")
+        print(bonita.consultarValorVariable("estatutoValido",caseId))
         bonita.actividadCompleta(idActividad)
         print("___COMPLETE LA ACTIVIDAD___")
 
@@ -236,7 +239,7 @@ def aceptarEstatutoBonita (caseId):
         return False
 
 def rechazar_estatuto(id):
-    verificarSesion()
+    verificarSesionAL()
     try:
         if (request.method == "POST"):
             comentario = request.form.get('comentario')
@@ -270,6 +273,7 @@ def rechazar_estatuto(id):
 
 def rechazarEstatutoBonita (caseId, comentario):
     try:
+        print('__RECHAZAR SOCIEDAD BONITA__')
         idActividad = bonita.buscarActividad(caseId)
         print("___YA TENGO EL ID DE LA ACTIVIDAD___")
         bonita.asignarTarea(idActividad)
@@ -277,8 +281,8 @@ def rechazarEstatutoBonita (caseId, comentario):
         bonita.setearVariable("estatutoValido", 'false', "java.lang.Boolean", caseId)
         bonita.setearVariable("informeEstatuto", comentario, "java.lang.String", caseId)
         print("___YA SETEE LAS VARIABLES")
-        print(bonita.consultarValorVariable("registroValido",caseId))
-        print(bonita.consultarValorVariable("informeRegistro",caseId))
+        print(bonita.consultarValorVariable("estatutoValido",caseId))
+        print(bonita.consultarValorVariable("informeEstatuto",caseId))
         bonita.actividadCompleta(idActividad)
         print("___COMPLETE LA ACTIVIDAD___")
         return True
