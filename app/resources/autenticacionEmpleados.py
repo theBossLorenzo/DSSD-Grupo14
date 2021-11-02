@@ -1,4 +1,4 @@
-from flask import request, redirect, session, abort, render_template
+from flask import request, redirect, session, abort, render_template, flash
 import app.helpers.auth as auth
 import app.helpers.bonita as bonita
 
@@ -20,13 +20,19 @@ def login():
 def autenticacion():
     datos= request.form
     #-------BONITA--------
-    bonita.autenticacion(datos["username"],datos["password"])
-    bonita.buscarIdUsuarioLogueado(datos["username"])
-    print('ROOOOL ' + session['rol'])
-    if session["rol"] == 'mesa_entrada':
-        return redirect('sociedades')
-    elif session ["rol"] == 'area_legales':
-        return redirect('estatutos')
+    try:
+        if (bonita.autenticacion(datos["username"],datos["password"])) :
+            bonita.buscarIdUsuarioLogueado(datos["username"])
+            if session["rol"] == 'mesa_entrada':
+                return redirect('sociedades')
+            elif session ["rol"] == 'area_legales':
+                return redirect('estatutos')
+        else:
+            flash ('Datos de autenticacion incorrectos', 'error')
+            return render_template("login.html")
+    except:
+            return "Falla comunicacion con Bonita"
+
 
 def logout():
     if (auth.authenticated(session)):
