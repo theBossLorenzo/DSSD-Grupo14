@@ -1,4 +1,5 @@
-from flask import request, render_template, session, abort
+from flask import request, render_template, session, flash, redirect
+from flask.helpers import url_for
 import requests
 from app.models.sociedad import Sociedad
 from app.models.socio import Socio
@@ -49,7 +50,8 @@ def altaFormualrio():
                     if x == 0:
                         sociedad.representante = socio.id
             else:
-                raise Exception("Los porcentajes de los socios no suman 100%")
+                flash ('La participacion de socios no suman 100%', 'error')
+                return redirect(url_for('index'))
 
             # ------BONITA COMUNICACION-------
             if (comunicacionBonita(sociedad)):
@@ -57,9 +59,11 @@ def altaFormualrio():
                 sociedad.nroExpediente = nroExpediente
                 print(sociedad.nroExpediente)
                 Sociedad.guardar(sociedad)
-                return "Sociedad agregada. Sociedad id={}".format(sociedad.id)
+                flash ('Sociedad agregada de manera exitosa', 'success')
+                return redirect(url_for('index'))
             else:
-                return 'Falla en la comunicacion con Bonita'
+                flash ('Error interno - Bonita comunicacion', 'error')
+                return redirect(url_for('index'))
         except Exception as e:
             return str(e)
     return render_template("crear_sociedad.html")
@@ -115,10 +119,31 @@ def aceptar_sociedad(id):
             sociedad = Sociedad.buscarPorId(id)
             sociedad.aceptada = True
 
+            print ('SOCIEDAD.IDCASE: ' + str(sociedad.caseId))
+
             if (aceptarSociedadBonita(sociedad.caseId)):
                 Sociedad.actualizar(sociedad)
 
-                return "Sociedad aceptada. Sociedad id={}".format(id)
+                # MOSTRAR LISTADO DE SOCIEDADES
+                try:
+                    sociedades = Sociedad.pendientes()
+                    if (sociedades is not None):
+                        soc=[]
+                        for each in sociedades:
+                            soc.append({
+                                'id':each.id,
+                                'nombre':each.nombre,
+                                'domicilio_legal':each.domicilio_legal,
+                                'domicilio_real':each.domicilio_real,
+                                'correo':each.correo,
+                                'estatuto': each.estatuto
+                            })
+                        flash ('Sociedad aceptada', 'success')
+                        return render_template("sociedades.html", sociedades=soc)
+                    else:
+                        return 'No hay sociedades con estado PENDIENTE DE APROBACION'
+                except Exception as e:
+                    return str(e)
             else:
                 return "Falla en la comunicacion con Bonita"
     except Exception as e:
@@ -155,7 +180,27 @@ def rechazar_sociedad(id):
             if (rechazarSociedadBonita (sociedad.caseId, comentario)):
                 Sociedad.actualizar(sociedad)
 
-                return "Sociedad rechazada. Sociedad id={}".format(id)
+                flash ('Sociedad rechazada', 'success')
+                # MOSTRAR LISTADO DE SOCIEDADES
+                try:
+                    sociedades = Sociedad.pendientes()
+                    if (sociedades is not None):
+                        soc=[]
+                        for each in sociedades:
+                            soc.append({
+                                'id':each.id,
+                                'nombre':each.nombre,
+                                'domicilio_legal':each.domicilio_legal,
+                                'domicilio_real':each.domicilio_real,
+                                'correo':each.correo,
+                                'estatuto': each.estatuto
+                            })
+                        flash ('Sociedad rechazada', 'success')
+                        return render_template("sociedades.html", sociedades=soc)
+                    else:
+                        return 'No hay sociedades con estado PENDIENTE DE APROBACION'
+                except Exception as e:
+                    return str(e)
             else:
                 return "Falla en la comunicacion con Bonita"
         else:
@@ -216,7 +261,18 @@ def estampillar(id):
             sociedad.estampillado = estampillado.generarEstampillado(sociedad.nroExpediente, sociedad.estatuto)
             print('__Ya genere estammpillado__')
             Sociedad.actualizar(sociedad)
-            return "Ya se genero estampillado de la Sociedad Anonima con id={}".format(sociedad.id)
+            flash ('Estampillado exitoso', 'success')
+            ## MOSTRAR LISTADO DE ESTATUTOS
+            solicitudes = Sociedad.getEstatutos()
+            solicitudPost = []
+            for each in solicitudes:
+                solicitudPost.append({
+                    'id': each.id,
+                    'estatuto': each.estatuto,
+                    'nombre': each.nombre,
+                    'correo': each.correo,
+                })
+            return render_template("estatutos.html", estatutos = solicitudPost)
         else:
             return "Falla en la comunicacion con API que genera estampillado"
     else:
@@ -253,7 +309,17 @@ def rechazar_estatuto(id):
             if (rechazarEstatutoBonita (sociedad.caseId, comentario)):
                 Sociedad.actualizar(sociedad)
 
-                return "Estatuto rechazada. Sociedad id={}".format(id)
+                flash ('Estatuto rechazado', 'success')
+                solicitudes = Sociedad.getEstatutos()
+                solicitudPost = []
+                for each in solicitudes:
+                    solicitudPost.append({
+                        'id': each.id,
+                        'estatuto': each.estatuto,
+                        'nombre': each.nombre,
+                        'correo': each.correo,
+                    })
+                return render_template("estatutos.html", estatutos = solicitudPost)
             else:
                 return "Falla en la comunicacion con Bonita"
         else:
