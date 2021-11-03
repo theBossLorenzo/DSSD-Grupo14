@@ -167,7 +167,7 @@
 
             <br>
 
-            <form id="dinamic" method="POST">
+            <form id="dinamic" method="POST" enctype="multipart/form-data">
 
                 <div class="form-row">
                     <label for="nombre">Nombre</label>
@@ -186,7 +186,7 @@
                 <br>
                    <div class="form-row">
                     <label for="domicilio_real">Domicilio legal</label>
-                    <input class="form-control" type="text" placeholder="Domicilio legal" id="domicilio_legal" name="domicilio_legal">
+                    <input required class="form-control" type="text" placeholder="Domicilio legal" id="domicilio_legal" name="domicilio_legal">
                 </div>
                 <br>
                   <div class="form-row">
@@ -201,7 +201,7 @@
                 <br>
                 <div class="form-row ">
                     <label for="estatuto">Adjuntar Estatuto (en formato .docx .odt o .pdf)</label>
-                    <input class="form-control" type="file" accept=".docx,.odt,.pdf" id="estatuto" name="estatuto">
+                    <input required class="form-control" type="file" accept=".docx,.odt,.pdf" id="estatuto" name="estatuto">
                 </div>
 
 

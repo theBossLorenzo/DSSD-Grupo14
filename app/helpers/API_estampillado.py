@@ -3,7 +3,7 @@ import requests
 import json
 
 def autenticacion(username, password):
-    url = "https://dssd-grupo14-apirest.herokuapp.com/API/login" #"http://localhost:5005/API/login" #ruta API de prueba porque la del rpyecto tambien corre en puerto 5000
+    url = "https://dssd-grupo14-apirest.herokuapp.com/API/login" #"http://localhost:5005/API/login" #ruta API de prueba porque la del proyecto tambien corre en puerto 5000
 
     payload = json.dumps({
         "username": username,

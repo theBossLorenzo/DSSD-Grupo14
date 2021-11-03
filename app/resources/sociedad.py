@@ -3,27 +3,29 @@ from flask.helpers import url_for
 import requests
 from app.models.sociedad import Sociedad
 from app.models.socio import Socio
+from app.models.estauto import Estatuto
 import app.helpers.auth as auth
 import app.helpers.bonita as bonita 
 import app.helpers.API_estampillado as estampillado
+import app.helpers.QR as qr
 from app.resources.autenticacionEmpleados import verificarSesionAL, verificarSesionME
 
 
 def altaFormualrio():
     if request.method == 'POST':
         nombre = request.form.get('nombre')
-        estatuto = request.form.get('estatuto')
         fecha_creacion = request.form.get('fecha_creacion')
         domicilio_real = request.form.get('domicilio_real')
         domicilio_legal = request.form.get('domicilio_legal')
         correo = request.form.get('correo')
         socios = request.form.get('socios')
         representante = request.args.get('representante')
+        estatuto_file = request.files['estatuto']
 
         try:
             sociedad = Sociedad(
                 nombre=nombre,
-                estatuto=estatuto,
+                estatuto=estatuto_file.filename,
                 fecha_creacion=fecha_creacion,
                 domicilio_legal=domicilio_legal,
                 domicilio_real=domicilio_real,
@@ -58,7 +60,12 @@ def altaFormualrio():
                 nroExpediente = len(Sociedad.todos()) + 1
                 sociedad.nroExpediente = nroExpediente
                 print(sociedad.nroExpediente)
+                # Guardamos sociedad y estatuto de la misma
                 Sociedad.guardar(sociedad)
+                soc = Sociedad.__repr__(sociedad)
+                file = Estatuto(estatuto_file.filename, estatuto_file.read(), soc)
+                Estatuto.guardar(file)
+
                 flash ('Sociedad agregada de manera exitosa', 'success')
                 return redirect(url_for('index'))
             else:
@@ -355,3 +362,9 @@ def rechazarEstatutoBonita (caseId, comentario):
         return True
     except:
         return False
+
+def generarQR ():
+    res = qr.generarQR()
+    print ("RESULTADO DE QR: " + str(res))
+
+    return "HECHO"
