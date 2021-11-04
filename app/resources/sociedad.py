@@ -365,6 +365,5 @@ def rechazarEstatutoBonita (caseId, comentario):
 
 def generarQR ():
     res = qr.generarQR()
-    print ("RESULTADO DE QR: " + str(res))
 
-    return "HECHO"
+    return "SE CREO QR"
