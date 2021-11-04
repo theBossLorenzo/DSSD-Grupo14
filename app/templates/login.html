@@ -12,6 +12,7 @@
     <script src="//maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
     <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
 
+    <script src="//cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 </head>
 
@@ -20,6 +21,45 @@
     <div class="container">
 
         <div class="container">
+            {% with mensajes= get_flashed_messages(category_filter=["error"])%}
+                {% if mensajes %}
+                    {% for messages in mensajes%}
+                    <script>
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Oops...',
+                            text: "{{messages}}",
+                        })
+                    </script>
+                    {% endfor %}
+                {% endif %}
+                {% endwith %}
+                {% with mensajes= get_flashed_messages(category_filter=["success"])%}
+                    {% if mensajes %}
+                        {% for messages in mensajes%}
+                        <script>
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Bien hecho!',
+                                text: "{{messages}}",
+                            })
+                        </script>
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
+                {% with mensajes= get_flashed_messages(category_filter=["warning"])%}
+                {% if mensajes %}
+                    {% for messages in mensajes%}
+                    <script>
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'Cuidado!',
+                            text: "{{messages}}",
+                        })
+                    </script>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
             <br>
             <br>
 

@@ -9,16 +9,55 @@
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO"
         crossorigin="anonymous">
 
+    <script src="//cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 </head>
 
 <body>
 
     <div class="container">
-
+        {% with mensajes= get_flashed_messages(category_filter=["error"])%}
+                {% if mensajes %}
+                    {% for messages in mensajes%}
+                    <script>
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Oops...',
+                            text: "{{messages}}",
+                        })
+                    </script>
+                    {% endfor %}
+                {% endif %}
+                {% endwith %}
+                {% with mensajes= get_flashed_messages(category_filter=["success"])%}
+                    {% if mensajes %}
+                        {% for messages in mensajes%}
+                        <script>
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Bien hecho!',
+                                text: "{{messages}}",
+                            })
+                        </script>
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
+                {% with mensajes= get_flashed_messages(category_filter=["warning"])%}
+                {% if mensajes %}
+                    {% for messages in mensajes%}
+                    <script>
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'Cuidado!',
+                            text: "{{messages}}",
+                        })
+                    </script>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
         <div class="container">
             <div style="float: right; margin-top: 0.5%;">
-                <a href="{{url_for("logout")}}" class="btn btn-primary" >Cerrar sesion</a>
+                <a href="{{url_for('logout')}}" class="btn btn-primary" >Cerrar sesion</a>
             </div>
             <br>
             <br>

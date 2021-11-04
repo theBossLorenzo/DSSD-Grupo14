@@ -32,7 +32,8 @@ class Sociedad(db.Model):
 
 
     def __repr__(self):
-        return '<id {}>'.format(self.id)
+        return self.id
+        #return '<id {}>'.format(self.id)
 
     def serialize(self):
         return {
@@ -56,6 +57,9 @@ class Sociedad(db.Model):
     
     def buscarPorId (id):
         return Sociedad.query.filter_by(id=id).first()
+
+    def buscarPorNumExpediente (nroExpediente):
+        return Sociedad.query.filter_by(nroExpediente=nroExpediente).first()
 
     def todos():
         return  Sociedad.query.all()
