@@ -41,6 +41,7 @@ def create_app(environment="development"):
     app.add_url_rule("/rechazar_estatuto/<id>", "rechazar_estatuto", sociedad.rechazar_estatuto,  methods=["GET", "POST"])
     
     app.add_url_rule("/pruebaQR", "prueba_qr", sociedad.generarQR)
+    app.add_url_rule("/datosPublicos", "datos_publicos", sociedad.datosPublicos) #aca deberia tener el estampillado como parametro
 
     # Ruta para el Home (usando decorator)
     @app.route("/")

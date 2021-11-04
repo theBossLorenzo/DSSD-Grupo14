@@ -367,3 +367,7 @@ def generarQR ():
     res = qr.generarQR()
 
     return "SE CREO QR"
+
+def datosPublicos(): # aca recibe por parametro el estampillado, busca la sociedad y mando los datos al html para mostrar
+
+    return render_template("datosSociedadPublica.html")
