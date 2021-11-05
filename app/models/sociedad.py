@@ -8,7 +8,7 @@ class Sociedad(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     nombre = db.Column(db.String())
     estatuto = db.Column(db.String())
-    fecha_creacion = db.Column(db.DateTime())
+    fecha_creacion = db.Column(db.Date())
     domicilio_legal = db.Column(db.String())
     domicilio_real = db.Column(db.String())
     representante = db.Column(db.String())

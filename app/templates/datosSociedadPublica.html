@@ -9,11 +9,14 @@
 </head>
 <body>
     <div style="text-align: center;">
-        <h1>NOMBRE SOCIEDAD</h1>
-        <h3><strong>Nombre: </strong> Sociedad</h3>
-        <h3><strong>Fecha creacion: </strong> 10/02/2022</h3>
-        <h3><strong>Socios: </strong> Valentin</h3>
-        <h3><strong>Acceso informacion publica: </strong> *QR imagen*</h3>
+        <h1>INFORMACION PUBLICA</h1>
+        <h1><strong>{{soc.nombre}}</strong></h1>
+        <p><strong>Fecha creacion: </strong>{{soc.fecha_creacion}}</p>
+        <p><strong>Socios: </strong><p>
+        {%for socio in socios%}
+        <li>{{socio.nombre}} {{socio.apellido}} {{socio.porcentaje}}%</li>
+        {%endfor%}    
+        <p><strong>QR sociedad: </strong> *QR imagen*<p>
     </div>
 </body>
 </html>

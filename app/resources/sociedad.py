@@ -1,15 +1,16 @@
 from flask import request, render_template, session, flash, redirect
 from flask.helpers import url_for
-import requests
 from app.models.sociedad import Sociedad
 from app.models.socio import Socio
 from app.models.estauto import Estatuto
-import app.helpers.auth as auth
 import app.helpers.bonita as bonita 
 import app.helpers.API_estampillado as estampillado
 import app.helpers.QR as qr
 from app.resources.autenticacionEmpleados import verificarSesionAL, verificarSesionME
 
+from datetime import datetime
+
+from app.helpers.googleDrive import crear_archivo_texto
 
 def altaFormualrio():
     if request.method == 'POST':
@@ -38,39 +39,42 @@ def altaFormualrio():
                 totalPorcentajes += int(request.form.get('porcentaje_socio' + str(x)))
 
             if totalPorcentajes == 100:
-                for x in range(int(socios)):
-                    nombre_socio = request.form.get('nombre_socio' + str(x))
-                    apellido_socio = request.form.get('apellido_socio' + str(x))
-                    porcentaje_socio = request.form.get('porcentaje_socio' + str(x))
-                    socio = Socio(
-                        id_sociedad=sociedad.id,
-                        nombre=nombre_socio,
-                        apellido=apellido_socio,
-                        porcentaje=porcentaje_socio
-                    )
-                    Socio.guardar(socio)
-                    if x == 0:
-                        sociedad.representante = socio.id
+                # ------BONITA COMUNICACION-------
+                if (comunicacionBonita(sociedad)):
+                    nroExpediente = len(Sociedad.todos()) + 1
+                    sociedad.nroExpediente = nroExpediente
+                    print(sociedad.nroExpediente)
+                    # Guardamos sociedad y estatuto de la misma
+                    Sociedad.guardar(sociedad)
+                    soc = Sociedad.__repr__(sociedad)
+                    file = Estatuto(estatuto_file.filename, estatuto_file.read(), soc)
+                    Estatuto.guardar(file)
+
+                    for x in range(int(socios)):
+                        nombre_socio = request.form.get('nombre_socio' + str(x))
+                        apellido_socio = request.form.get('apellido_socio' + str(x))
+                        porcentaje_socio = request.form.get('porcentaje_socio' + str(x))
+                        socio = Socio(
+                            id_sociedad=sociedad.id,
+                            nombre=nombre_socio,
+                            apellido=apellido_socio,
+                            porcentaje=porcentaje_socio
+                        )
+                        Socio.guardar(socio)
+                        if x == 0:
+                            sociedad.representante = socio.id
+
+                    flash ('Sociedad agregada de manera exitosa', 'success')
+                    return redirect(url_for('index'))
+                else:
+                    flash ('Error interno - Bonita comunicacion', 'error')
+                    return redirect(url_for('index'))
+                
             else:
                 flash ('La participacion de socios no suman 100%', 'error')
                 return redirect(url_for('index'))
 
-            # ------BONITA COMUNICACION-------
-            if (comunicacionBonita(sociedad)):
-                nroExpediente = len(Sociedad.todos()) + 1
-                sociedad.nroExpediente = nroExpediente
-                print(sociedad.nroExpediente)
-                # Guardamos sociedad y estatuto de la misma
-                Sociedad.guardar(sociedad)
-                soc = Sociedad.__repr__(sociedad)
-                file = Estatuto(estatuto_file.filename, estatuto_file.read(), soc)
-                Estatuto.guardar(file)
-
-                flash ('Sociedad agregada de manera exitosa', 'success')
-                return redirect(url_for('index'))
-            else:
-                flash ('Error interno - Bonita comunicacion', 'error')
-                return redirect(url_for('index'))
+            
         except Exception as e:
             return str(e)
     return render_template("crear_sociedad.html")
@@ -159,6 +163,7 @@ def aceptar_sociedad(id):
 def aceptarSociedadBonita (caseId):
     try:
         print('__ACEPTAR SOCIEDAD BONITA__')
+        print(caseId)
         idActividad = bonita.buscarActividad(caseId)
         print("___YA TENGO EL ID DE LA ACTIVIDAD___")
         bonita.asignarTarea(idActividad)
@@ -367,3 +372,25 @@ def generarQR ():
     res = qr.generarQR()
 
     return "SE CREO QR"
+
+def mostrarDatosPublicos(id):
+    soc = Sociedad.buscarPorId(id) 
+    socList = {
+        "nombre": soc.nombre,
+        "fecha_creacion": datetime.strptime(str(soc.fecha_creacion),"%Y-%m-%d").date()
+    }
+    socios = Socio.buscarPorIdSociedad(soc.id)
+    sociosList = []
+    for socio in socios:
+        sociosList.append({
+            "nombre": socio.nombre,
+            "apellido": socio.apellido,
+            "porcentaje": socio.porcentaje
+        })
+
+    return render_template("datosSociedadPublica.html", soc = socList, socios = sociosList)
+
+def drive():
+    crear_archivo_texto()
+
+    return "Hecho"
