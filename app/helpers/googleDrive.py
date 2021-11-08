@@ -21,10 +21,10 @@ def login():
     credenciales = GoogleDrive(gauth)
     return credenciales
 
-def crear_archivo_texto(nombre_archivo="PrimerArchivo.txt",contenido="DSSD Grupo14",id_folder="1Z-jA0cmC2vMiZVRa6a1wwY0h9YFjvOa4"):
+def crear_archivo_texto(nombre_archivo="Bigu.txt",contenido="BOCA LA CONCHA DE TU MAAADRE",id_folder="1Z-jA0cmC2vMiZVRa6a1wwY0h9YFjvOa4"):
     credenciales = login()
     archivo = credenciales.CreateFile({'title': nombre_archivo,\
                                        'parents': [{"kind": "drive#fileLink",\
                                                     "id": id_folder}]})
-    archivo.SetContentString('Hey MoonCoders!')
+    archivo.SetContentString(contenido)
     archivo.Upload()
