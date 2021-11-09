@@ -421,3 +421,29 @@ def drive(id):
     subirPDF(soc)
 
     return True
+
+def mostrar_estatutos_aceptados():
+    verificarSesionAL()
+    estatutos = Sociedad.devolverEstatutosAceptados()
+    estatutosPost = []
+    for each in estatutos:
+        estatutosPost.append({
+            'id': each.id,
+            'estatuto': each.estatuto,
+            'nombre': each.nombre,
+            'correo': each.correo,
+        })
+    return render_template("estatutos_aceptados.html", estatutos = estatutosPost)
+
+def mostrar_sociedades_QR():
+    verificarSesionME()
+    sociedades = Sociedad.devolverSociedadesConQR()
+    sociedadesPost = []
+    for each in sociedades:
+        sociedadesPost.append({
+            'id': each.id,
+            'estatuto': each.estatuto,
+            'nombre': each.nombre,
+            'correo': each.correo,
+        })
+    return render_template("sociedades_aceptados.html", estatutos = sociedadesPost)

@@ -71,4 +71,10 @@ class Sociedad(db.Model):
 
     def getEstatutos():
         return Sociedad.query.filter_by(estatuto_aceptado = None, aceptada = True)
+
+    def devolverEstatutosAceptados():
+        return Sociedad.query.filter_by(estututo_aceptado=True)
+
+    def devolverSociedadesConQR():
+        return Sociedad.query.filter_by(qr=1)
                 
