@@ -59,8 +59,8 @@
 
         <div class="container">
             <div style="float: right; margin-top: 0.5%;">
+                <a href="{{url_for('mostrar_estatutos_aceptados')}}" class="btn btn-primary" >Estatutos Estampillados</a>
                 <a href="{{url_for('logout')}}" class="btn btn-primary" >Cerrar sesion</a>
-                <a href="{{url_for('mostrar_estatutos_aceptados')}}" class="btn btn-primary" >Estatutos Aceptados</a>
             </div>
             <br>
             <br>
@@ -99,7 +99,7 @@
                         <td>{{ s.nombre }}</td>
                         <td>{{ s.correo }}</td>
                         <td>{{ s.estatuto }}</td>
-                        <td><a href="{{url_for('estampillar', id=s.id)}}" class="btn btn-success">Aceptar</a></td>
+                        <td><a href="{{url_for('estampillar', id=s.id)}}" class="btn btn-success">Estampillar</a></td>
                         <td><a href="{{url_for('rechazar_estatuto', id=s.id)}}" class="btn btn-danger">Rechazar</a></td>
                     </tr>
                 {% endfor %}

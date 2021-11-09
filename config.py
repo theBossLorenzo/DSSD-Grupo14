@@ -24,8 +24,8 @@ class ProductionConfig(Config):
     DB_PASS = environ.get("DB_PASS", "MY_DB_PASS")
     DB_NAME = environ.get("DB_NAME", "MY_DB_NAME")
     SQLALCHEMY_TRACK_MODIFICATIONS = False
-    # SQLALCHEMY_DATABASE_URI = ('postgresql://postgres:valenPostgres@localhost:5432/DSSD14') # valentin: 'postgresql://postgres:valenPostgres@localhost:5432/DSSD14', bruno:"postgresql://postgres:cabj1211@localhost:5432/DSSD14", lorenzo:'postgresql://postgres:v@localhost:5432/dssd14'
-    SQLALCHEMY_DATABASE_URI = ('postgresql://postgres:cabj1211@localhost:5432/prueba')
+    SQLALCHEMY_DATABASE_URI = ('postgresql://postgres:valenPostgres@localhost:5432/DSSD14') # valentin: 'postgresql://postgres:valenPostgres@localhost:5432/DSSD14', bruno:"postgresql://postgres:cabj1211@localhost:5432/DSSD14", lorenzo:'postgresql://postgres:v@localhost:5432/dssd14'
+    #SQLALCHEMY_DATABASE_URI = ('postgresql://postgres:cabj1211@localhost:5432/prueba')
 
 class DevelopmentConfig(Config):
     """Development configuration."""
@@ -35,8 +35,8 @@ class DevelopmentConfig(Config):
     DB_PASS = environ.get("DB_PASS", "MY_DB_PASS")
     DB_NAME = environ.get("DB_NAME", "MY_DB_NAME")
     SQLALCHEMY_TRACK_MODIFICATIONS = False
-    #SQLALCHEMY_DATABASE_URI = ('postgresql://postgres:valenPostgres@localhost:5432/DSSD14') # valentin: 'postgresql://postgres:valenPostgres@localhost:5432/DSSD14', bruno: "postgresql://postgres:cabj1211@localhost:5432/DSSD14", lorenzo: 'postgresql://postgres:@localhost:5432/DSSD14'
-    SQLALCHEMY_DATABASE_URI = ('postgresql://postgres:cabj1211@localhost:5432/prueba')
+    SQLALCHEMY_DATABASE_URI = ('postgresql://postgres:valenPostgres@localhost:5432/DSSD14') # valentin: 'postgresql://postgres:valenPostgres@localhost:5432/DSSD14', bruno: "postgresql://postgres:cabj1211@localhost:5432/DSSD14", lorenzo: 'postgresql://postgres:@localhost:5432/DSSD14'
+    #SQLALCHEMY_DATABASE_URI = ('postgresql://postgres:cabj1211@localhost:5432/prueba')
 
 class TestingConfig(Config):
     """Testing configuration."""
@@ -47,8 +47,8 @@ class TestingConfig(Config):
     DB_PASS = environ.get("DB_PASS", "MY_DB_PASS")
     DB_NAME = environ.get("DB_NAME", "MY_DB_NAME")
     SQLALCHEMY_TRACK_MODIFICATIONS = False
-    #SQLALCHEMY_DATABASE_URI = ('postgresql://postgres:valenPostgres@localhost:5432/DSSD14') # valentin: 'postgresql://postgres:valenPostgres@localhost:5432/DSSD14', bruno: "postgresql://postgres:cabj1211@localhost:5432/DSSD14", lorenzo: 'postgresql://postgres:@localhost:5432/DSSD14'
-    SQLALCHEMY_DATABASE_URI = ('postgresql://postgres:cabj1211@localhost:5432/prueba')
+    SQLALCHEMY_DATABASE_URI = ('postgresql://postgres:valenPostgres@localhost:5432/DSSD14') # valentin: 'postgresql://postgres:valenPostgres@localhost:5432/DSSD14', bruno: "postgresql://postgres:cabj1211@localhost:5432/DSSD14", lorenzo: 'postgresql://postgres:@localhost:5432/DSSD14'
+    #SQLALCHEMY_DATABASE_URI = ('postgresql://postgres:cabj1211@localhost:5432/prueba')
 
 config = dict(
     development=DevelopmentConfig, test=TestingConfig, production=ProductionConfig

@@ -381,12 +381,23 @@ def generarQR (id):
     if (qr.generarQR(soc)):
         soc.qr = 1
         Sociedad.actualizar(soc)
-        return "SE CREO QR"
+        flash ('Generacion de codigo QR exitoso', 'success')
+        ## MOSTRAR LISTADO DE ESTATUTOS ESTAMPILLADOS
+        estatutos = Sociedad.devolverEstatutosAceptados()
+        estatutosPost = []
+        for each in estatutos:
+            estatutosPost.append({
+                'id': each.id,
+                'estatuto': each.estatuto,
+                'nombre': each.nombre,
+                'correo': each.correo,
+            })
+        return render_template("estatutos_aceptados.html", estatutos = estatutosPost)
     else:
         return "NO SE CREO QR"
 
-def mostrarDatosPublicos(id):
-    soc = Sociedad.buscarPorId(id) 
+def mostrarDatosPublicos(estampillado):
+    soc = Sociedad.buscarPorEstampillado(estampillado)
     socList = {
         "nombre": soc.nombre,
         "fecha_creacion": datetime.strptime(str(soc.fecha_creacion),"%Y-%m-%d").date()

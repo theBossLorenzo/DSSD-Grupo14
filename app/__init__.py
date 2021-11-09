@@ -42,7 +42,7 @@ def create_app(environment="development"):
     
     app.add_url_rule("/estatutos_aceptados", "mostrar_estatutos_aceptados", sociedad.mostrar_estatutos_aceptados)
     app.add_url_rule("/generarQR/<id>", "generar_qr", sociedad.generarQR) #FUNCIONA
-    app.add_url_rule("/datosPublicos/<id>", "datos_publicos", sociedad.mostrarDatosPublicos) #FUNCIONA
+    app.add_url_rule("/datosPublicos/<estampillado>", "datos_publicos", sociedad.mostrarDatosPublicos) #FUNCIONA
 
     app.add_url_rule("/sociedades_aceptados", "mostrar_sociedades_aceptadas", sociedad.mostrar_sociedades_QR)
     app.add_url_rule("/generarPDF/<id>", "generar_pdf", sociedad.generarPDF)

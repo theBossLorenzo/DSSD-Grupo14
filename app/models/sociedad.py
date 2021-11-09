@@ -62,6 +62,9 @@ class Sociedad(db.Model):
 
     def buscarPorNumExpediente (nroExpediente):
         return Sociedad.query.filter_by(nroExpediente=nroExpediente).first()
+    
+    def buscarPorEstampillado (estampillado):
+        return Sociedad.query.filter_by(estampillado=estampillado).first()
 
     def todos():
         return  Sociedad.query.all()
@@ -73,7 +76,7 @@ class Sociedad(db.Model):
         return Sociedad.query.filter_by(estatuto_aceptado = None, aceptada = True)
 
     def devolverEstatutosAceptados():
-        return Sociedad.query.filter_by(estututo_aceptado=True)
+        return Sociedad.query.filter_by(estatuto_aceptado=True, qr=0)
 
     def devolverSociedadesConQR():
         return Sociedad.query.filter_by(qr=1)
