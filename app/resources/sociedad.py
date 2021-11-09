@@ -376,17 +376,28 @@ def rechazarEstatutoBonita (caseId, comentario):
     except:
         return False
 
-def generarQR (estampillado): #falta la comunicacion con Bonita
-    soc = Sociedad.buscarPorEstampillado(estampillado)
+def generarQR (id): #falta la comunicacion con Bonita
+    soc = Sociedad.buscarPorId(id)
     if (qr.generarQR(soc)):
         soc.qr = 1
         Sociedad.actualizar(soc)
-        return "SE CREO QR"
+        flash ('Generacion de codigo QR exitoso', 'success')
+        ## MOSTRAR LISTADO DE ESTATUTOS ESTAMPILLADOS
+        estatutos = Sociedad.devolverEstatutosAceptados()
+        estatutosPost = []
+        for each in estatutos:
+            estatutosPost.append({
+                'id': each.id,
+                'estatuto': each.estatuto,
+                'nombre': each.nombre,
+                'correo': each.correo,
+            })
+        return render_template("estatutos_aceptados.html", estatutos = estatutosPost)
     else:
         return "NO SE CREO QR"
 
-def mostrarDatosPublicos(id):
-    soc = Sociedad.buscarPorId(id) 
+def mostrarDatosPublicos(estampillado):
+    soc = Sociedad.buscarPorEstampillado(estampillado)
     socList = {
         "nombre": soc.nombre,
         "fecha_creacion": datetime.strptime(str(soc.fecha_creacion),"%Y-%m-%d").date()
@@ -421,3 +432,29 @@ def drive(id):
     subirPDF(soc)
 
     return True
+
+def mostrar_estatutos_aceptados():
+    verificarSesionAL()
+    estatutos = Sociedad.devolverEstatutosAceptados()
+    estatutosPost = []
+    for each in estatutos:
+        estatutosPost.append({
+            'id': each.id,
+            'estatuto': each.estatuto,
+            'nombre': each.nombre,
+            'correo': each.correo,
+        })
+    return render_template("estatutos_aceptados.html", estatutos = estatutosPost)
+
+def mostrar_sociedades_QR():
+    verificarSesionME()
+    sociedades = Sociedad.devolverSociedadesConQR()
+    sociedadesPost = []
+    for each in sociedades:
+        sociedadesPost.append({
+            'id': each.id,
+            'estatuto': each.estatuto,
+            'nombre': each.nombre,
+            'correo': each.correo,
+        })
+    return render_template("sociedades_aceptados.html", estatutos = sociedadesPost)
