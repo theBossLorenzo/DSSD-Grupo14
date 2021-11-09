@@ -378,9 +378,12 @@ def rechazarEstatutoBonita (caseId, comentario):
 
 def generarQR (id):
     soc = Sociedad.buscarPorId(id)
-    qr.generarQR(soc)
-
-    return "SE CREO QR"
+    if (qr.generarQR(soc)):
+        soc.qr = 1
+        Sociedad.actualizar(soc)
+        return "SE CREO QR"
+    else:
+        return "NO SE CREO QR"
 
 def mostrarDatosPublicos(id):
     soc = Sociedad.buscarPorId(id) 
@@ -408,10 +411,13 @@ def generarPDF (id):
     pdf.titles(soc.nombre)
     pdf.output("app/static/PDF/ExpedienteDigital_Soc{}.pdf".format(soc.nroExpediente), "F")
 
-    return "PDF CREADO" #redireccionar a "generar_drive" con el id de la sociedad
+    if (drive(soc.id)):
+        return "SUBIDO A DRIVE"
+    else:
+        return "FALLA EN LA CARGA A DRIVE"
 
 def drive(id):
     soc = Sociedad.buscarPorId(id)
     subirPDF(soc)
 
-    return "CARGADO EN DRIVE"
+    return True
