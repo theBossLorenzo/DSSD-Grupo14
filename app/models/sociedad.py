@@ -60,6 +60,9 @@ class Sociedad(db.Model):
     def buscarPorId (id):
         return Sociedad.query.filter_by(id=id).first()
 
+    def buscarPorEstampillado (estampillado):
+        return Sociedad.query.filter_by(estampillado=estampillado).first()
+
     def buscarPorNumExpediente (nroExpediente):
         return Sociedad.query.filter_by(nroExpediente=nroExpediente).first()
 

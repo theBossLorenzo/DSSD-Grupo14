@@ -376,8 +376,8 @@ def rechazarEstatutoBonita (caseId, comentario):
     except:
         return False
 
-def generarQR (id):
-    soc = Sociedad.buscarPorId(id)
+def generarQR (estampillado): #falta la comunicacion con Bonita
+    soc = Sociedad.buscarPorEstampillado(estampillado)
     if (qr.generarQR(soc)):
         soc.qr = 1
         Sociedad.actualizar(soc)
@@ -402,7 +402,7 @@ def mostrarDatosPublicos(id):
 
     return render_template("datosSociedadPublica.html", soc = socList, socios = sociosList)
 
-def generarPDF (id):
+def generarPDF (id): #falta la comunicacion con Bonita
     soc = Sociedad.buscarPorId(id)
     pdf = PDF()
     pdf.add_page()
