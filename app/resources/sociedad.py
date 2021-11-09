@@ -296,9 +296,7 @@ def estampillar(id):
 def aceptarEstatutoBonita (caseId):
     try:
         print('<ACEPTAR ESTATUTO BONITA>')
-        print('case id: ' + str(caseId))
         idActividad = bonita.buscarActividad(caseId)
-        print('id actividad: ' + idActividad)
         print("1.1 YA TENGO EL ID DE LA ACTIVIDAD")
         bonita.asignarTarea(idActividad)
         print("1.2 YA ASIGNE LA TAREA AL ACTOR CON ID {}".format(session["idUsuario"]))
@@ -396,6 +394,21 @@ def generarQR (id): #falta la comunicacion con Bonita
     else:
         return "NO SE CREO QR"
 
+'''def bonitaGenerarQR (caseId):
+    try:
+        print('<GENERAR QR>')
+        idActividad = bonita.buscarActividad(caseId)
+        print("1.1 YA TENGO EL ID DE LA ACTIVIDAD")
+        bonita.asignarTarea(idActividad)
+        print("1.2 YA ASIGNE LA TAREA AL ACTOR CON ID {}".format(session["idUsuario"]))
+        bonita.actividadCompleta(idActividad)
+        print("1.3 COMPLETE LA ACTIVIDAD")
+        print('</GENERAR QR>')
+
+        return True
+    except:
+        return False'''
+
 def mostrarDatosPublicos(estampillado):
     soc = Sociedad.buscarPorEstampillado(estampillado)
     socList = {
@@ -423,7 +436,19 @@ def generarPDF (id): #falta la comunicacion con Bonita
     pdf.output("app/static/PDF/ExpedienteDigital_Soc{}.pdf".format(soc.nroExpediente), "F")
 
     if (drive(soc.id)):
-        return "SUBIDO A DRIVE"
+        soc.drive = 1
+        Sociedad.actualizar(soc)
+        flash("Carga de PDF a Google Drive exitosa", "success")
+        sociedades = Sociedad.devolverSociedadesConQR()
+        sociedadesPost = []
+        for each in sociedades:
+            sociedadesPost.append({
+                'id': each.id,
+                'estatuto': each.estatuto,
+                'nombre': each.nombre,
+                'correo': each.correo,
+            })
+        return render_template("sociedades_aceptados.html", estatutos = sociedadesPost)
     else:
         return "FALLA EN LA CARGA A DRIVE"
 

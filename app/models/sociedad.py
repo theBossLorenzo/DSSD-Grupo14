@@ -21,6 +21,7 @@ class Sociedad(db.Model):
     comentarioAL = db.Column(db.String()) 
     nroExpediente = db.Column(db.Integer)
     qr = db.Column(db.Integer) # 1=SI 0=NO
+    drive = db.Column(db.Integer) # 1=SI 0=NO
 
     def __init__(self, nombre,estatuto,fecha_creacion,domicilio_legal,domicilio_real,representante,correo):
         self.nombre = nombre
@@ -31,6 +32,7 @@ class Sociedad(db.Model):
         self.representante = representante
         self.correo = correo
         self.qr = 0
+        self.drive = 0
 
 
     def __repr__(self):
@@ -82,5 +84,5 @@ class Sociedad(db.Model):
         return Sociedad.query.filter_by(estatuto_aceptado=True, qr=0)
 
     def devolverSociedadesConQR():
-        return Sociedad.query.filter_by(qr=1)
+        return Sociedad.query.filter_by(qr=1, drive=0)
                 
