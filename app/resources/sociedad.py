@@ -1,15 +1,17 @@
 from flask import request, render_template, session, flash, redirect
 from flask.helpers import url_for
-import requests
+from app.models.pdf import PDF
 from app.models.sociedad import Sociedad
 from app.models.socio import Socio
 from app.models.estauto import Estatuto
-import app.helpers.auth as auth
 import app.helpers.bonita as bonita 
 import app.helpers.API_estampillado as estampillado
 import app.helpers.QR as qr
 from app.resources.autenticacionEmpleados import verificarSesionAL, verificarSesionME
 
+from datetime import datetime
+
+from app.helpers.googleDrive import subirPDF
 
 def altaFormualrio():
     if request.method == 'POST':
@@ -38,59 +40,61 @@ def altaFormualrio():
                 totalPorcentajes += int(request.form.get('porcentaje_socio' + str(x)))
 
             if totalPorcentajes == 100:
-                for x in range(int(socios)):
-                    nombre_socio = request.form.get('nombre_socio' + str(x))
-                    apellido_socio = request.form.get('apellido_socio' + str(x))
-                    porcentaje_socio = request.form.get('porcentaje_socio' + str(x))
-                    socio = Socio(
-                        id_sociedad=sociedad.id,
-                        nombre=nombre_socio,
-                        apellido=apellido_socio,
-                        porcentaje=porcentaje_socio
-                    )
-                    Socio.guardar(socio)
-                    if x == 0:
-                        sociedad.representante = socio.id
+                # ------BONITA COMUNICACION-------
+                if (comunicacionBonita(sociedad)):
+                    nroExpediente = len(Sociedad.todos()) + 1
+                    sociedad.nroExpediente = nroExpediente
+                    # Guardamos sociedad y estatuto de la misma
+                    Sociedad.guardar(sociedad)
+                    soc = Sociedad.__repr__(sociedad)
+                    file = Estatuto(estatuto_file.filename, estatuto_file.read(), soc)
+                    Estatuto.guardar(file)
+
+                    for x in range(int(socios)):
+                        nombre_socio = request.form.get('nombre_socio' + str(x))
+                        apellido_socio = request.form.get('apellido_socio' + str(x))
+                        porcentaje_socio = request.form.get('porcentaje_socio' + str(x))
+                        socio = Socio(
+                            id_sociedad=sociedad.id,
+                            nombre=nombre_socio,
+                            apellido=apellido_socio,
+                            porcentaje=porcentaje_socio
+                        )
+                        Socio.guardar(socio)
+                        if x == 0:
+                            sociedad.representante = socio.id
+
+                    flash ('Sociedad agregada de manera exitosa', 'success')
+                    return redirect(url_for('index'))
+                else:
+                    flash ('Error interno - Bonita comunicacion', 'error')
+                    return redirect(url_for('index'))
+                
             else:
                 flash ('La participacion de socios no suman 100%', 'error')
                 return redirect(url_for('index'))
 
-            # ------BONITA COMUNICACION-------
-            if (comunicacionBonita(sociedad)):
-                nroExpediente = len(Sociedad.todos()) + 1
-                sociedad.nroExpediente = nroExpediente
-                print(sociedad.nroExpediente)
-                # Guardamos sociedad y estatuto de la misma
-                Sociedad.guardar(sociedad)
-                soc = Sociedad.__repr__(sociedad)
-                file = Estatuto(estatuto_file.filename, estatuto_file.read(), soc)
-                Estatuto.guardar(file)
-
-                flash ('Sociedad agregada de manera exitosa', 'success')
-                return redirect(url_for('index'))
-            else:
-                flash ('Error interno - Bonita comunicacion', 'error')
-                return redirect(url_for('index'))
+            
         except Exception as e:
             return str(e)
     return render_template("crear_sociedad.html")
 
 def comunicacionBonita (sociedad):
     try:
-        print('__PRIMER COMUNICACION CON BONITA__')
+        print('<PRIMER COMUNICACION CON BONITA>')
         bonita.autenticacion('bruno', 'bpm')
-        print("___YA ME AUTENTIQUE___")
+        print("1.1 YA ME AUTENTIQUE")
         bonita.getProcessId('Alta sociedades anonimas')
-        print("___YA OBTUVE EL ID DEL PROCESO___")
+        print("1.2 YA OBTUVE EL ID DEL PROCESO")
         sociedad.caseId = bonita.iniciarProceso()
-        print('__CASE ID: ' + str(sociedad.caseId))
         Sociedad.actualizar(sociedad)
-        print("___INICIE EL PROCESO___")
+        print("1.3 INICIE EL PROCESO")
         bonita.setearVariable('emailApoderado', sociedad.correo, "java.lang.String", str(sociedad.caseId))
         bonita.setearVariable('idProceso', str(session['idProcesoSA']), "java.lang.String", str(sociedad.caseId))
-        print("___SETEE LAS VARIABLES___")
-        print(bonita.consultarValorVariable('emailApoderado', sociedad.caseId))
-        print(bonita.consultarValorVariable('idProceso', sociedad.caseId))
+        print("1.4 SETEE LAS VARIABLES: ")
+        print("1.4.1 Email Apoderado: " + bonita.consultarValorVariable('emailApoderado', sociedad.caseId))
+        print("1.4.2 Id Proceso: " + bonita.consultarValorVariable('idProceso', sociedad.caseId))
+        print('</PRIMER COMUNICACION CON BONITA>')
 
         return True
     except:
@@ -158,16 +162,17 @@ def aceptar_sociedad(id):
 
 def aceptarSociedadBonita (caseId):
     try:
-        print('__ACEPTAR SOCIEDAD BONITA__')
+        print('<ACEPTAR SOCIEDAD BONITA>')
         idActividad = bonita.buscarActividad(caseId)
-        print("___YA TENGO EL ID DE LA ACTIVIDAD___")
+        print("1.1 YA TENGO EL ID DE LA ACTIVIDAD")
         bonita.asignarTarea(idActividad)
-        print("___YA ASIGNE LA TAREA AL ACTOR CON ID {}___".format(session["idUsuario"]))
+        print("1.2 YA ASIGNE LA TAREA AL ACTOR CON ID {}".format(session["idUsuario"]))
         bonita.setearVariable("registroValido", 'true', "java.lang.Boolean", caseId)
-        print("___YA SETEE LA VARIABLE VALIDO___")
-        print(bonita.consultarValorVariable("registroValido",caseId))
+        print("1.3 YA SETEE LA VARIABLE VALIDO:")
+        print("1.3.1 Registro Valido: " + bonita.consultarValorVariable("registroValido",caseId))
         bonita.actividadCompleta(idActividad)
-        print("___COMPLETE LA ACTIVIDAD___")
+        print("1.4 COMPLETE LA ACTIVIDAD")
+        print('</ACEPTAR SOCIEDAD BONITA>')
 
         return True
     except:
@@ -228,18 +233,19 @@ def rechazar_sociedad(id):
 
 def rechazarSociedadBonita (caseId, comentario):
     try:
-        print('__RECHAZAR SOCIEDAD BONITA__')
+        print('<RECHAZAR SOCIEDAD BONITA>')
         idActividad = bonita.buscarActividad(caseId)
-        print("___YA TENGO EL ID DE LA ACTIVIDAD___")
+        print("1.1 YA TENGO EL ID DE LA ACTIVIDAD")
         bonita.asignarTarea(idActividad)
-        print("___YA ASIGNE LA TAREA AL ACTOR CON ID {}___".format(session["idUsuario"]))
+        print("1.2 YA ASIGNE LA TAREA AL ACTOR CON ID {}".format(session["idUsuario"]))
         bonita.setearVariable("registroValido", 'false', "java.lang.Boolean", caseId)
         bonita.setearVariable("informeRegistro", comentario, "java.lang.String", caseId)
-        print("___YA SETEE LAS VARIABLES")
-        print(bonita.consultarValorVariable("registroValido",caseId))
-        print(bonita.consultarValorVariable("informeRegistro",caseId))
+        print("1.3 YA SETEE LAS VARIABLES: ")
+        print("1.3.1 Registro Valido: " + bonita.consultarValorVariable("registroValido",caseId))
+        print("1.3.2 Informe Registro: " + bonita.consultarValorVariable("informeRegistro",caseId))
         bonita.actividadCompleta(idActividad)
-        print("___COMPLETE LA ACTIVIDAD___")
+        print("1.4 COMPLETE LA ACTIVIDAD")
+        print('</RECHAZAR SOCIEDAD BONITA>')
 
         return True
     except:
@@ -261,12 +267,14 @@ def mostrar_estatutos():
 def estampillar(id):
     sociedad = Sociedad.buscarPorId(id)
     sociedad.estatuto_aceptado = True
+    print(sociedad.caseId)
     if (aceptarEstatutoBonita(sociedad.caseId)):
         Sociedad.actualizar(sociedad)
         if (estampillado.autenticacion('area_legales', 'dssdGrupo14')):
-            print('__Ya me autentique__')
+            print("<GENERAR ESTAMPILLAD0>") 
+            print("1.1 Ya me autentique")
             sociedad.estampillado = estampillado.generarEstampillado(sociedad.nroExpediente, sociedad.estatuto)
-            print('__Ya genere estammpillado__')
+            print('1.2 Ya genere estammpillado')
             Sociedad.actualizar(sociedad)
             flash ('Estampillado exitoso', 'success')
             ## MOSTRAR LISTADO DE ESTATUTOS
@@ -287,16 +295,19 @@ def estampillar(id):
 
 def aceptarEstatutoBonita (caseId):
     try:
-        print('__ACEPTAR ESTATUTO BONITA__')
+        print('<ACEPTAR ESTATUTO BONITA>')
+        print('case id: ' + str(caseId))
         idActividad = bonita.buscarActividad(caseId)
-        print("___YA TENGO EL ID DE LA ACTIVIDAD___")
+        print('id actividad: ' + idActividad)
+        print("1.1 YA TENGO EL ID DE LA ACTIVIDAD")
         bonita.asignarTarea(idActividad)
-        print("___YA ASIGNE LA TAREA AL ACTOR CON ID {}___".format(session["idUsuario"]))
+        print("1.2 YA ASIGNE LA TAREA AL ACTOR CON ID {}".format(session["idUsuario"]))
         bonita.setearVariable("estatutoValido", 'true', "java.lang.Boolean", caseId)
-        print("___YA SETEE LA VARIABLE ESTATUTO VALIDO___")
-        print(bonita.consultarValorVariable("estatutoValido",caseId))
+        print("1.3 YA SETEE LA VARIABLE ESTATUTO VALIDO: ")
+        print("1.3.1 Estatuto Valido: " + bonita.consultarValorVariable("estatutoValido",caseId))
         bonita.actividadCompleta(idActividad)
-        print("___COMPLETE LA ACTIVIDAD___")
+        print("1.4 COMPLETE LA ACTIVIDAD")
+        print('</ACEPTAR ESTATUTO BONITA>')
 
         return True
     except:
@@ -347,23 +358,66 @@ def rechazar_estatuto(id):
 
 def rechazarEstatutoBonita (caseId, comentario):
     try:
-        print('__RECHAZAR SOCIEDAD BONITA__')
+        print('<RECHAZAR SOCIEDAD BONITA>')
         idActividad = bonita.buscarActividad(caseId)
-        print("___YA TENGO EL ID DE LA ACTIVIDAD___")
+        print("1.1 YA TENGO EL ID DE LA ACTIVIDAD")
         bonita.asignarTarea(idActividad)
-        print("___YA ASIGNE LA TAREA AL ACTOR CON ID {}___".format(session["idUsuario"]))
+        print("1.2 YA ASIGNE LA TAREA AL ACTOR CON ID {}".format(session["idUsuario"]))
         bonita.setearVariable("estatutoValido", 'false', "java.lang.Boolean", caseId)
         bonita.setearVariable("informeEstatuto", comentario, "java.lang.String", caseId)
-        print("___YA SETEE LAS VARIABLES")
-        print(bonita.consultarValorVariable("estatutoValido",caseId))
-        print(bonita.consultarValorVariable("informeEstatuto",caseId))
+        print("1.3 YA SETEE LAS VARIABLES: ")
+        print("1.3.1 Estatuto Valido: " + bonita.consultarValorVariable("estatutoValido",caseId))
+        print("1.3.2 Estatuto Valido: " + bonita.consultarValorVariable("informeEstatuto",caseId))
         bonita.actividadCompleta(idActividad)
-        print("___COMPLETE LA ACTIVIDAD___")
+        print("1.4 COMPLETE LA ACTIVIDAD")
+        print('</RECHAZAR SOCIEDAD BONITA>')
+
         return True
     except:
         return False
 
-def generarQR ():
-    res = qr.generarQR()
+def generarQR (id):
+    soc = Sociedad.buscarPorId(id)
+    if (qr.generarQR(soc)):
+        soc.qr = 1
+        Sociedad.actualizar(soc)
+        return "SE CREO QR"
+    else:
+        return "NO SE CREO QR"
 
-    return "SE CREO QR"
+def mostrarDatosPublicos(id):
+    soc = Sociedad.buscarPorId(id) 
+    socList = {
+        "nombre": soc.nombre,
+        "fecha_creacion": datetime.strptime(str(soc.fecha_creacion),"%Y-%m-%d").date()
+    }
+    socios = Socio.buscarPorIdSociedad(soc.id)
+    sociosList = []
+    for socio in socios:
+        sociosList.append({
+            "nombre": socio.nombre,
+            "apellido": socio.apellido,
+            "porcentaje": socio.porcentaje
+        })
+
+    return render_template("datosSociedadPublica.html", soc = socList, socios = sociosList)
+
+def generarPDF (id):
+    soc = Sociedad.buscarPorId(id)
+    pdf = PDF()
+    pdf.add_page()
+    pdf.logo('app/static/qr/QR{}.png'.format(soc.nroExpediente), 0, 0, 30, 30)
+    pdf.text(soc)
+    pdf.titles(soc.nombre)
+    pdf.output("app/static/PDF/ExpedienteDigital_Soc{}.pdf".format(soc.nroExpediente), "F")
+
+    if (drive(soc.id)):
+        return "SUBIDO A DRIVE"
+    else:
+        return "FALLA EN LA CARGA A DRIVE"
+
+def drive(id):
+    soc = Sociedad.buscarPorId(id)
+    subirPDF(soc)
+
+    return True

@@ -8,7 +8,7 @@ class Sociedad(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     nombre = db.Column(db.String())
     estatuto = db.Column(db.String())
-    fecha_creacion = db.Column(db.DateTime())
+    fecha_creacion = db.Column(db.Date())
     domicilio_legal = db.Column(db.String())
     domicilio_real = db.Column(db.String())
     representante = db.Column(db.String())
@@ -20,6 +20,7 @@ class Sociedad(db.Model):
     estatuto_aceptado = db.Column(db.Boolean())
     comentarioAL = db.Column(db.String()) 
     nroExpediente = db.Column(db.Integer)
+    qr = db.Column(db.Integer) # 1=SI 0=NO
 
     def __init__(self, nombre,estatuto,fecha_creacion,domicilio_legal,domicilio_real,representante,correo):
         self.nombre = nombre
@@ -29,6 +30,7 @@ class Sociedad(db.Model):
         self.domicilio_legal = domicilio_legal
         self.representante = representante
         self.correo = correo
+        self.qr = 0
 
 
     def __repr__(self):

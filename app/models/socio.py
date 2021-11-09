@@ -34,3 +34,6 @@ class Socio(db.Model):
         db.session.add(self)
         db.session.commit()
         return True
+
+    def buscarPorIdSociedad (id_sociedad):
+        return Socio.query.filter_by(id_sociedad=id_sociedad)

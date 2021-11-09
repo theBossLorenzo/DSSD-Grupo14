@@ -103,12 +103,12 @@ def asignarTarea (idActividad):
         "Cookie": session["Cookies-bonita"]
     }
     
-    requests.request("GET", url, headers=headers, data=payload)
+    requests.request("PUT", url, headers=headers, json=payload)
 
     return True
 
 def actividadCompleta (idActividad):
-    url = "http://localhost:8085/bonita/API/bpm/activity/{}".format(idActividad)
+    url = "http://localhost:8085/bonita/API/bpm/userTask/{}/execution".format(idActividad)
 
     payload={}
     headers = {
@@ -116,7 +116,7 @@ def actividadCompleta (idActividad):
         "Cookie": session["Cookies-bonita"]
     }
 
-    requests.request("PUT", url, headers=headers, data=payload)
+    requests.request("POST", url, headers=headers, data=payload)
 
     return True
 
