@@ -11,7 +11,7 @@ from app.resources.autenticacionEmpleados import verificarSesionAL, verificarSes
 
 from datetime import datetime
 
-from app.helpers.googleDrive import crear_archivo_texto
+from app.helpers.googleDrive import subirPDF
 
 def altaFormualrio():
     if request.method == 'POST':
@@ -376,8 +376,9 @@ def rechazarEstatutoBonita (caseId, comentario):
     except:
         return False
 
-def generarQR ():
-    res = qr.generarQR()
+def generarQR (id):
+    soc = Sociedad.buscarPorId(id)
+    qr.generarQR(soc)
 
     return "SE CREO QR"
 
@@ -398,18 +399,19 @@ def mostrarDatosPublicos(id):
 
     return render_template("datosSociedadPublica.html", soc = socList, socios = sociosList)
 
-def drive():
-    crear_archivo_texto()
-
-    return "Hecho"
-
-def pruebaPDF ():
-    soc = Sociedad.buscarPorId(129)
+def generarPDF (id):
+    soc = Sociedad.buscarPorId(id)
     pdf = PDF()
     pdf.add_page()
-    pdf.logo('QR.png', 0, 0, 30, 30)
+    pdf.logo('app/static/qr/QR{}.png'.format(soc.nroExpediente), 0, 0, 30, 30)
     pdf.text(soc)
     pdf.titles(soc.nombre)
-    pdf.output("test.pdf", "F")
+    pdf.output("app/static/PDF/ExpedienteDigital_Soc{}.pdf".format(soc.nroExpediente), "F")
 
-    return "PDF CREADO"
+    return "PDF CREADO" #redireccionar a "generar_drive" con el id de la sociedad
+
+def drive(id):
+    soc = Sociedad.buscarPorId(id)
+    subirPDF(soc)
+
+    return "CARGADO EN DRIVE"

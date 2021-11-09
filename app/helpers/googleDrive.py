@@ -21,10 +21,11 @@ def login():
     credenciales = GoogleDrive(gauth)
     return credenciales
 
-def crear_archivo_texto(nombre_archivo="Bigu.txt",contenido="BOCA LA CONCHA DE TU MAAADRE",id_folder="1Z-jA0cmC2vMiZVRa6a1wwY0h9YFjvOa4"):
+def subirPDF(soc):
     credenciales = login()
-    archivo = credenciales.CreateFile({'title': nombre_archivo,\
-                                       'parents': [{"kind": "drive#fileLink",\
-                                                    "id": id_folder}]})
-    archivo.SetContentString(contenido)
+    archivo = credenciales.CreateFile({'parents': [{"kind": "drive#fileLink",\
+                                                    "id": "1Z-jA0cmC2vMiZVRa6a1wwY0h9YFjvOa4"}]})
+    archivo['title'] = "app/static/PDF/ExpedienteDigital_Soc{}.pdf".format(soc.nroExpediente).split("/")[-1]
+    archivo.SetContentFile("app/static/PDF/ExpedienteDigital_Soc{}.pdf".format(soc.nroExpediente))
     archivo.Upload()
+    return True
