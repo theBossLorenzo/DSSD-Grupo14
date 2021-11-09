@@ -30,23 +30,27 @@ def create_app(environment="development"):
     #ACA HAY QUE PONER LAS RUTAS QUE DEBEN LLAMAR A LOS METODOS QUE TENEMOS EN RESOURCES
     #app.add_url_rule("/ruta", "nombre para invocar a la ruta", "invocacion metodo", "decir tipo de envio (opcional)")
     app.add_url_rule("/", "index", sociedad.altaFormualrio, methods=['GET','POST'])
+
     app.add_url_rule("/login", "login", autenticacionEmpleados.login)
     app.add_url_rule("/autenticacion", "autenticacion", autenticacionEmpleados.autenticacion, methods=["POST"])
     app.add_url_rule("/logout", "logout", autenticacionEmpleados.logout)
+    #MESA ENTRADA
     app.add_url_rule("/sociedades", "sociedades", sociedad.sociedades)
     app.add_url_rule("/aceptar_sociedad/<id>", "aceptar_sociedad", sociedad.aceptar_sociedad)
     app.add_url_rule("/rechazar_sociedad/<id>", "rechazar_sociedad", sociedad.rechazar_sociedad, methods=["GET", "POST"])
+    app.add_url_rule("/sociedades_aceptados", "mostrar_sociedades_aceptadas", sociedad.mostrar_sociedades_QR) 
+    app.add_url_rule("/generarPDF/<id>", "generar_pdf", sociedad.generarPDF)
+    app.add_url_rule("/cargaDrive/<id>", "carga_drive", sociedad.drive)
+    #AREA LEGALES
     app.add_url_rule("/estatutos", "estatutos", sociedad.mostrar_estatutos)
     app.add_url_rule("/estampillar/<id>", "estampillar", sociedad.estampillar)
     app.add_url_rule("/rechazar_estatuto/<id>", "rechazar_estatuto", sociedad.rechazar_estatuto,  methods=["GET", "POST"])
+    app.add_url_rule("/estatutos_aceptados", "mostrar_estatutos_aceptados", sociedad.mostrar_estatutos_aceptados)
+    app.add_url_rule("/generarQR/<id>", "generar_qr", sociedad.generarQR)
     
-    app.add_url_rule("/estatutos_aceptados", "mostrar_estatutos_aceptados", sociedad.mostrar_estatutos_aceptados) #FUNCIONA
-    app.add_url_rule("/generarQR/<id>", "generar_qr", sociedad.generarQR) #FUNCIONA
-    app.add_url_rule("/datosPublicos/<estampillado>", "datos_publicos", sociedad.mostrarDatosPublicos) #FUNCIONA
+    app.add_url_rule("/datosPublicos/<estampillado>", "datos_publicos", sociedad.mostrarDatosPublicos)
 
-    app.add_url_rule("/sociedades_aceptados", "mostrar_sociedades_aceptadas", sociedad.mostrar_sociedades_QR) #FUNCIONA
-    app.add_url_rule("/generarPDF/<id>", "generar_pdf", sociedad.generarPDF) #FUNCIONA
-    app.add_url_rule("/cargaDrive/<id>", "carga_drive", sociedad.drive) #FUNCIONA
+
 
     # Ruta para el Home (usando decorator)
     @app.route("/")
