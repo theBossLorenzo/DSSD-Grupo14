@@ -1,5 +1,6 @@
 from flask import request, render_template, session, flash, redirect
 from flask.helpers import url_for
+from app.models.pdf import PDF
 from app.models.sociedad import Sociedad
 from app.models.socio import Socio
 from app.models.estauto import Estatuto
@@ -401,3 +402,14 @@ def drive():
     crear_archivo_texto()
 
     return "Hecho"
+
+def pruebaPDF ():
+    soc = Sociedad.buscarPorId(129)
+    pdf = PDF()
+    pdf.add_page()
+    pdf.logo('QR.png', 0, 0, 30, 30)
+    pdf.text(soc)
+    pdf.titles(soc.nombre)
+    pdf.output("test.pdf", "F")
+
+    return "PDF CREADO"
