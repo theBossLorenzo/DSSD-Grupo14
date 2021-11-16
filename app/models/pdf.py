@@ -15,7 +15,7 @@ class PDF(FPDF):
         self.multi_cell(0, 10, msj)
 
     def titles(self, title="TITULO DE PRUEBA DE PDF"):
-        self.set_xy(00.0,20.0)
+        self.set_xy(00.0,30.0)
         self.set_text_color(220, 50, 50)
         self.set_font('Arial', 'B', 20)
         self.cell(w=210.0, h=40.0, align='C', txt="Expediente digital '" + title + "'", border=0)

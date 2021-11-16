@@ -434,7 +434,7 @@ def generarPDF (id): #falta la comunicacion con Bonita
     pdf.logo('app/static/qr/QR{}.png'.format(soc.nroExpediente), 0, 0, 40, 40)
     pdf.text(soc)
     pdf.titles(soc.nombre)
-    pdf.output("app/static/PDF/ExpedienteDigital_Soc{}.pdf".format(soc.nroExpediente), "F")
+    pdf.output("app/static/PDF/ExpedienteDigital_Soc{}.pdf".format(soc.estampillado), "F")
 
     if (drive(soc.id)):
         soc.drive = 1
