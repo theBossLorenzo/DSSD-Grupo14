@@ -8,6 +8,7 @@ import app.helpers.bonita as bonita
 import app.helpers.API_estampillado as estampillado
 import app.helpers.QR as qr
 from app.resources.autenticacionEmpleados import verificarSesionAL, verificarSesionME
+import base64
 
 from datetime import datetime
 
@@ -410,11 +411,11 @@ def generarQR (id): #falta la comunicacion con Bonita
         return False'''
 
 def mostrarDatosPublicos(estampillado):
-    soc = Sociedad.buscarPorEstampillado(estampillado)
+    soc = Sociedad.buscarPorId(estampillado)
     socList = {
         "nombre": soc.nombre,
         "fecha_creacion": datetime.strptime(str(soc.fecha_creacion),"%Y-%m-%d").date(),
-        "qr": 'app/static/qr/QR{}.png'.format(soc.nroExpediente)
+        "qr":'qr/QR{}.png'.format(soc.nroExpediente),
     }
     socios = Socio.buscarPorIdSociedad(soc.id)
     sociosList = []
