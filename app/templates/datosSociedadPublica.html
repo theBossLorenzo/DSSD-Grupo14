@@ -16,7 +16,9 @@
         {%for socio in socios%}
         <li>{{socio.nombre}} {{socio.apellido}} {{socio.porcentaje}}%</li>
         {%endfor%}    
-        <p><strong>QR sociedad: </strong> *QR imagen*<p>
+        <p><strong>QR sociedad: </strong>
+            <img src="{{soc.qr}}" alt="QR">    
+        <p>
     </div>
 </body>
 </html>

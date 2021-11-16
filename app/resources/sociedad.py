@@ -413,7 +413,8 @@ def mostrarDatosPublicos(estampillado):
     soc = Sociedad.buscarPorEstampillado(estampillado)
     socList = {
         "nombre": soc.nombre,
-        "fecha_creacion": datetime.strptime(str(soc.fecha_creacion),"%Y-%m-%d").date()
+        "fecha_creacion": datetime.strptime(str(soc.fecha_creacion),"%Y-%m-%d").date(),
+        "qr": 'app/static/qr/QR{}.png'.format(soc.nroExpediente)
     }
     socios = Socio.buscarPorIdSociedad(soc.id)
     sociosList = []
@@ -421,7 +422,7 @@ def mostrarDatosPublicos(estampillado):
         sociosList.append({
             "nombre": socio.nombre,
             "apellido": socio.apellido,
-            "porcentaje": socio.porcentaje
+            "porcentaje": socio.porcentaje            
         })
 
     return render_template("datosSociedadPublica.html", soc = socList, socios = sociosList)
@@ -430,7 +431,7 @@ def generarPDF (id): #falta la comunicacion con Bonita
     soc = Sociedad.buscarPorId(id)
     pdf = PDF()
     pdf.add_page()
-    pdf.logo('app/static/qr/QR{}.png'.format(soc.nroExpediente), 0, 0, 30, 30)
+    pdf.logo('app/static/qr/QR{}.png'.format(soc.nroExpediente), 0, 0, 40, 40)
     pdf.text(soc)
     pdf.titles(soc.nombre)
     pdf.output("app/static/PDF/ExpedienteDigital_Soc{}.pdf".format(soc.nroExpediente), "F")
