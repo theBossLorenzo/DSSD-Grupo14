@@ -411,7 +411,7 @@ def generarQR (id): #falta la comunicacion con Bonita
         return False'''
 
 def mostrarDatosPublicos(estampillado):
-    soc = Sociedad.buscarPorId(estampillado)
+    soc = Sociedad.buscarPorEstampillado(estampillado)
     socList = {
         "nombre": soc.nombre,
         "fecha_creacion": datetime.strptime(str(soc.fecha_creacion),"%Y-%m-%d").date(),
