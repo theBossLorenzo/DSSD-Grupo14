@@ -39,7 +39,7 @@ def altaFormualrio():
                         sociedad.domicilio_real=domicilio_real
                         sociedad.correo=correo
                         sociedad.fecha_rechazo = None
-                        sociedad.aceptada = None #deberia quedar en true VER
+                        sociedad.aceptada = None
                         sociedad.comentario = None
                         Sociedad.actualizar(sociedad)
 
