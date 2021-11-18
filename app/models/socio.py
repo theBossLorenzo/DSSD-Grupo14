@@ -37,3 +37,6 @@ class Socio(db.Model):
 
     def buscarPorIdSociedad (id_sociedad):
         return Socio.query.filter_by(id_sociedad=id_sociedad)
+
+    def buscarPorNombreApellidoSociedad(nombre,apellido,sociedad):
+        return Socio.query.filter_by(nombre=nombre,apellido=apellido,id_sociedad=sociedad).first()

@@ -1,5 +1,6 @@
 from flask import request, render_template, session, flash, redirect
 from flask.helpers import url_for
+from requests import NullHandler
 from app.models.pdf import PDF
 from app.models.sociedad import Sociedad
 from app.models.socio import Socio
@@ -9,6 +10,7 @@ import app.helpers.API_estampillado as estampillado
 import app.helpers.QR as qr
 from app.resources.autenticacionEmpleados import verificarSesionAL, verificarSesionME
 import base64
+from dateutil.relativedelta import relativedelta
 
 from datetime import datetime
 
@@ -22,60 +24,117 @@ def altaFormualrio():
         domicilio_legal = request.form.get('domicilio_legal')
         correo = request.form.get('correo')
         socios = request.form.get('socios')
-        representante = request.args.get('representante')
+        representante = request.form.get('representante')
         estatuto_file = request.files['estatuto']
 
         try:
-            sociedad = Sociedad(
-                nombre=nombre,
-                estatuto=estatuto_file.filename,
-                fecha_creacion=fecha_creacion,
-                domicilio_legal=domicilio_legal,
-                domicilio_real=domicilio_real,
-                representante=representante,
-                correo=correo
-            )
+            if Sociedad.buscarPorNombre(nombre) is None:
+                if Sociedad.buscarPorNombreRechazado(nombre) is not None:
+                    if (datetime.today().date() <= (datetime.strptime(str(Sociedad.buscarPorNombreRechazado(nombre).fecha_rechazo), "%Y-%m-%d") + relativedelta(days=+7)).date()):
+                        sociedad = Sociedad.buscarPorNombreRechazado(nombre)
+                        sociedad.nombre=nombre
+                        sociedad.estatuto=estatuto_file.filename
+                        sociedad.fecha_creacion=fecha_creacion
+                        sociedad.domicilio_legal=domicilio_legal
+                        sociedad.domicilio_real=domicilio_real
+                        sociedad.representante=representante
+                        sociedad.correo=correo
+                        sociedad.fecha_rechazo = None
+                        sociedad.aceptada = None
+                        sociedad.comentario = None
+                        Sociedad.actualizar(sociedad)
 
-            totalPorcentajes = 0
-            for x in range(int(socios)):
-                totalPorcentajes += int(request.form.get('porcentaje_socio' + str(x)))
+                        estatuto = Estatuto.buscarPorSociedad(sociedad.id)
+                        Estatuto.eliminar(estatuto)
 
-            if totalPorcentajes == 100:
-                # ------BONITA COMUNICACION-------
-                if (comunicacionBonita(sociedad)):
-                    nroExpediente = len(Sociedad.todos()) + 1
-                    sociedad.nroExpediente = nroExpediente
-                    # Guardamos sociedad y estatuto de la misma
-                    Sociedad.guardar(sociedad)
-                    soc = Sociedad.__repr__(sociedad)
-                    file = Estatuto(estatuto_file.filename, estatuto_file.read(), soc)
-                    Estatuto.guardar(file)
+                        totalPorcentajes = 0
+                        for x in range(int(socios)):
+                            totalPorcentajes += int(request.form.get('porcentaje_socio' + str(x)))
 
-                    for x in range(int(socios)):
-                        nombre_socio = request.form.get('nombre_socio' + str(x))
-                        apellido_socio = request.form.get('apellido_socio' + str(x))
-                        porcentaje_socio = request.form.get('porcentaje_socio' + str(x))
-                        socio = Socio(
-                            id_sociedad=sociedad.id,
-                            nombre=nombre_socio,
-                            apellido=apellido_socio,
-                            porcentaje=porcentaje_socio
-                        )
-                        Socio.guardar(socio)
-                        if x == 0:
-                            sociedad.representante = socio.id
+                        if totalPorcentajes == 100:
+                            # ------BONITA COMUNICACION-------
+                            if (comunicacionBonita(sociedad)):
+                                nroExpediente = len(Sociedad.todos()) + 1
+                                sociedad.nroExpediente = nroExpediente
+                                # Guardamos sociedad y estatuto de la misma
+                                Sociedad.guardar(sociedad)
+                                soc = Sociedad.__repr__(sociedad)
+                                file = Estatuto(estatuto_file.filename, estatuto_file.read(), soc)
+                                Estatuto.guardar(file)
 
-                    flash ('Sociedad agregada de manera exitosa', 'success')
-                    return redirect(url_for('index'))
+                            #Traer todos los socios que tiene la sociedad, y eliminarlos
+
+                            for x in range(int(socios)):
+                                if (Socio.buscarPorNombreApellidoSociedad(request.form.get('nombre_socio' + str(x)),request.form.get('apellido_socio' + str(x)), sociedad.id) is None):
+                                    nombre_socio = request.form.get('nombre_socio' + str(x))
+                                    apellido_socio = request.form.get('apellido_socio' + str(x))
+                                    porcentaje_socio = request.form.get('porcentaje_socio' + str(x))
+                                    socio = Socio(
+                                    id_sociedad=sociedad.id,
+                                    nombre=nombre_socio,
+                                    apellido=apellido_socio,
+                                    porcentaje=porcentaje_socio
+                                    )
+                                    Socio.guardar(socio)                                   
+                                if x == 0:
+                                    socio = Socio.buscarPorNombreApellidoSociedad(request.form.get('nombre_socio' + str(x)),request.form.get('apellido_socio' + str(x)), sociedad.id)
+                                    sociedad.representante = socio.id
+                                    sociedad.actualizar()
+
+                        flash ('Se han reenviado los datos para ser evaluados nuevamente', 'success')
+                    else:
+                        flash ('No se puede agregar, el plazo de reentrega ha caducado', 'error')
                 else:
-                    flash ('Error interno - Bonita comunicacion', 'error')
-                    return redirect(url_for('index'))
-                
-            else:
-                flash ('La participacion de socios no suman 100%', 'error')
-                return redirect(url_for('index'))
+                    sociedad = Sociedad(
+                        nombre=nombre,
+                        estatuto=estatuto_file.filename,
+                        fecha_creacion=fecha_creacion,
+                        representante=representante,
+                        domicilio_legal=domicilio_legal,
+                        domicilio_real=domicilio_real,
+                        correo=correo
+                    )
 
-            
+                    totalPorcentajes = 0
+                    for x in range(int(socios)):
+                        totalPorcentajes += int(request.form.get('porcentaje_socio' + str(x)))
+
+                    if totalPorcentajes == 100:
+                        # ------BONITA COMUNICACION-------
+                        if (comunicacionBonita(sociedad)):
+                            nroExpediente = len(Sociedad.todos()) + 1
+                            sociedad.nroExpediente = nroExpediente
+                            # Guardamos sociedad y estatuto de la misma
+                            Sociedad.guardar(sociedad)
+                            soc = Sociedad.__repr__(sociedad)
+                            file = Estatuto(estatuto_file.filename, estatuto_file.read(), soc)
+                            Estatuto.guardar(file)
+
+                            for x in range(int(socios)):
+                                nombre_socio = request.form.get('nombre_socio' + str(x))
+                                apellido_socio = request.form.get('apellido_socio' + str(x))
+                                porcentaje_socio = request.form.get('porcentaje_socio' + str(x))
+                                socio = Socio(
+                                    id_sociedad=sociedad.id,
+                                    nombre=nombre_socio,
+                                    apellido=apellido_socio,
+                                    porcentaje=porcentaje_socio
+                                )
+                                Socio.guardar(socio)
+                                if x == 0:
+                                    sociedad.representante = socio.id
+                                    sociedad.actualizar()
+
+                            flash ('Sociedad agregada de manera exitosa', 'success')
+                        else:
+                            flash ('Error interno - Bonita comunicacion', 'error')
+                        
+                    else:
+                        flash ('La participacion de socios no suman 100%', 'error')
+                        
+            else:
+                flash('La sociedad {} se encuentra en el sistema'.format(nombre), 'error')
+            return redirect(url_for('index'))
         except Exception as e:
             return str(e)
     return render_template("crear_sociedad.html")
@@ -188,6 +247,7 @@ def rechazar_sociedad(id):
 
             sociedad = Sociedad.buscarPorId(id)
             sociedad.comentario = comentario
+            sociedad.fecha_rechazo = datetime.today()
             sociedad.aceptada = False
 
             if (rechazarSociedadBonita (sociedad.caseId, comentario)):

@@ -23,3 +23,10 @@ class Estatuto(db.Model):
     def actualizar (self):
         db.session.commit()
         return True
+    
+    def buscarPorSociedad(id):
+        return Estatuto.query.filter_by(id_sociedad = id).first()
+
+    def eliminar(estatuto):
+        db.session.delete(estatuto)
+        db.session.commit()

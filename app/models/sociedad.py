@@ -1,4 +1,6 @@
+from enum import unique
 from app.db import db
+from sqlalchemy import or_
 
 metadata = db.MetaData()
 
@@ -6,7 +8,7 @@ class Sociedad(db.Model):
     __tablename__ = 'sociedad'
 
     id = db.Column(db.Integer, primary_key=True)
-    nombre = db.Column(db.String())
+    nombre = db.Column(db.String(), unique=True)
     estatuto = db.Column(db.String())
     fecha_creacion = db.Column(db.Date())
     domicilio_legal = db.Column(db.String())
@@ -15,6 +17,7 @@ class Sociedad(db.Model):
     correo = db.Column(db.String())
     aceptada = db.Column(db.Boolean())
     comentario = db.Column(db.String())
+    fecha_rechazo = db.Column(db.Date)
     caseId = db.Column(db.Integer)
     estampillado = db.Column(db.String())
     estatuto_aceptado = db.Column(db.Boolean())
@@ -85,4 +88,10 @@ class Sociedad(db.Model):
 
     def devolverSociedadesConQR():
         return Sociedad.query.filter_by(qr=1, drive=0)
+
+    def buscarPorNombre(nombre):
+        return Sociedad.query.filter(Sociedad.nombre==nombre, or_(Sociedad.aceptada==True, Sociedad.aceptada==None)).first()
+
+    def buscarPorNombreRechazado(nombre):
+        return Sociedad.query.filter_by(nombre=nombre, aceptada=False).first()
                 
