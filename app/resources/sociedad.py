@@ -1,20 +1,21 @@
+import re
 from flask import request, render_template, session, flash, redirect
 from flask.helpers import url_for
-from requests import NullHandler
+#AUTENTICACION
+from app.resources.autenticacionEmpleados import verificarSesionAL, verificarSesionME
+#MODELS
 from app.models.pdf import PDF
 from app.models.sociedad import Sociedad
 from app.models.socio import Socio
 from app.models.estauto import Estatuto
+#HELPERS
 import app.helpers.bonita as bonita 
 import app.helpers.API_estampillado as estampillado
 import app.helpers.QR as qr
-from app.resources.autenticacionEmpleados import verificarSesionAL, verificarSesionME
-import base64
-from dateutil.relativedelta import relativedelta
-
-from datetime import datetime
-
 from app.helpers.googleDrive import subirPDF
+#DATE
+from dateutil.relativedelta import relativedelta
+from datetime import datetime
 
 def altaFormualrio():
     if request.method == 'POST':
@@ -24,7 +25,6 @@ def altaFormualrio():
         domicilio_legal = request.form.get('domicilio_legal')
         correo = request.form.get('correo')
         socios = request.form.get('socios')
-        representante = request.form.get('representante')
         estatuto_file = request.files['estatuto']
 
         try:
@@ -37,10 +37,9 @@ def altaFormualrio():
                         sociedad.fecha_creacion=fecha_creacion
                         sociedad.domicilio_legal=domicilio_legal
                         sociedad.domicilio_real=domicilio_real
-                        sociedad.representante=representante
                         sociedad.correo=correo
                         sociedad.fecha_rechazo = None
-                        sociedad.aceptada = None
+                        sociedad.aceptada = None #deberia quedar en true VER
                         sociedad.comentario = None
                         Sociedad.actualizar(sociedad)
 
@@ -51,7 +50,7 @@ def altaFormualrio():
                         for x in range(int(socios)):
                             totalPorcentajes += int(request.form.get('porcentaje_socio' + str(x)))
 
-                        if totalPorcentajes == 100:
+                        if (totalPorcentajes == 100):
                             # ------BONITA COMUNICACION-------
                             if (comunicacionBonita(sociedad)):
                                 nroExpediente = len(Sociedad.todos()) + 1
@@ -62,19 +61,18 @@ def altaFormualrio():
                                 file = Estatuto(estatuto_file.filename, estatuto_file.read(), soc)
                                 Estatuto.guardar(file)
 
-                            #Traer todos los socios que tiene la sociedad, y eliminarlos
+                            listaSocios = Socio.buscarPorIdSociedad(soc)
+
+                            for each in listaSocios:
+                                Socio.eliminar(each)
 
                             for x in range(int(socios)):
                                 if (Socio.buscarPorNombreApellidoSociedad(request.form.get('nombre_socio' + str(x)),request.form.get('apellido_socio' + str(x)), sociedad.id) is None):
                                     nombre_socio = request.form.get('nombre_socio' + str(x))
                                     apellido_socio = request.form.get('apellido_socio' + str(x))
                                     porcentaje_socio = request.form.get('porcentaje_socio' + str(x))
-                                    socio = Socio(
-                                    id_sociedad=sociedad.id,
-                                    nombre=nombre_socio,
-                                    apellido=apellido_socio,
-                                    porcentaje=porcentaje_socio
-                                    )
+                                    socio = Socio(id_sociedad=sociedad.id, nombre=nombre_socio, apellido=apellido_socio, porcentaje=porcentaje_socio)
+
                                     Socio.guardar(socio)                                   
                                 if x == 0:
                                     socio = Socio.buscarPorNombreApellidoSociedad(request.form.get('nombre_socio' + str(x)),request.form.get('apellido_socio' + str(x)), sociedad.id)
@@ -85,15 +83,8 @@ def altaFormualrio():
                     else:
                         flash ('No se puede agregar, el plazo de reentrega ha caducado', 'error')
                 else:
-                    sociedad = Sociedad(
-                        nombre=nombre,
-                        estatuto=estatuto_file.filename,
-                        fecha_creacion=fecha_creacion,
-                        representante=representante,
-                        domicilio_legal=domicilio_legal,
-                        domicilio_real=domicilio_real,
-                        correo=correo
-                    )
+                    sociedad = Sociedad(nombre=nombre, estatuto=estatuto_file.filename, fecha_creacion=fecha_creacion, domicilio_legal=domicilio_legal, 
+                                                                                                                domicilio_real=domicilio_real,correo=correo)
 
                     totalPorcentajes = 0
                     for x in range(int(socios)):
@@ -114,12 +105,8 @@ def altaFormualrio():
                                 nombre_socio = request.form.get('nombre_socio' + str(x))
                                 apellido_socio = request.form.get('apellido_socio' + str(x))
                                 porcentaje_socio = request.form.get('porcentaje_socio' + str(x))
-                                socio = Socio(
-                                    id_sociedad=sociedad.id,
-                                    nombre=nombre_socio,
-                                    apellido=apellido_socio,
-                                    porcentaje=porcentaje_socio
-                                )
+                                socio = Socio(id_sociedad=sociedad.id, nombre=nombre_socio, apellido=apellido_socio, porcentaje=porcentaje_socio)
+
                                 Socio.guardar(socio)
                                 if x == 0:
                                     sociedad.representante = socio.id
@@ -133,7 +120,7 @@ def altaFormualrio():
                         flash ('La participacion de socios no suman 100%', 'error')
                         
             else:
-                flash('La sociedad {} se encuentra en el sistema'.format(nombre), 'error')
+                flash('La sociedad {} ya se encuentra en el sistema'.format(nombre), 'error')
             return redirect(url_for('index'))
         except Exception as e:
             return str(e)

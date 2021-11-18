@@ -26,13 +26,12 @@ class Sociedad(db.Model):
     qr = db.Column(db.Integer) # 1=SI 0=NO
     drive = db.Column(db.Integer) # 1=SI 0=NO
 
-    def __init__(self, nombre,estatuto,fecha_creacion,domicilio_legal,domicilio_real,representante,correo):
+    def __init__(self, nombre,estatuto,fecha_creacion,domicilio_legal,domicilio_real,correo):
         self.nombre = nombre
         self.estatuto = estatuto
         self.fecha_creacion = fecha_creacion
         self.domicilio_real = domicilio_real
         self.domicilio_legal = domicilio_legal
-        self.representante = representante
         self.correo = correo
         self.qr = 0
         self.drive = 0

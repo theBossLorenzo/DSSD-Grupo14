@@ -15,6 +15,9 @@ class Estatuto(db.Model):
         self.data = data
         self.id_sociedad = id_sociedad
 
+    def __repr__(self):
+        return self.id
+
     def guardar (self):
         db.session.add(self)
         db.session.commit()
@@ -23,6 +26,9 @@ class Estatuto(db.Model):
     def actualizar (self):
         db.session.commit()
         return True
+
+    def buscarPorId (id):
+        return Estatuto.query.filter_by(id=id).first()
     
     def buscarPorSociedad(id):
         return Estatuto.query.filter_by(id_sociedad = id).first()
