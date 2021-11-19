@@ -62,7 +62,6 @@ def altaFormualrio():
                                 Estatuto.guardar(file)
 
                             listaSocios = Socio.buscarPorIdSociedad(soc)
-
                             for each in listaSocios:
                                 Socio.eliminar(each)
 
@@ -93,9 +92,7 @@ def altaFormualrio():
                     if totalPorcentajes == 100:
                         # ------BONITA COMUNICACION-------
                         if (comunicacionBonita(sociedad)):
-                            nroExpediente = len(Sociedad.todos()) + 1
-                            sociedad.nroExpediente = nroExpediente
-                            # Guardamos sociedad y estatuto de la misma
+                            # Guardamos sociedad
                             Sociedad.guardar(sociedad)
                             soc = Sociedad.__repr__(sociedad)
                             file = Estatuto(estatuto_file.filename, estatuto_file.read(), soc)
@@ -121,7 +118,7 @@ def altaFormualrio():
                         
             else:
                 flash('La sociedad {} ya se encuentra en el sistema'.format(nombre), 'error')
-            return redirect(url_for('index'))
+            
         except Exception as e:
             return str(e)
     return render_template("crear_sociedad.html")
@@ -142,7 +139,6 @@ def comunicacionBonita (sociedad):
         print("1.4.1 Email Apoderado: " + bonita.consultarValorVariable('emailApoderado', sociedad.caseId))
         print("1.4.2 Id Proceso: " + bonita.consultarValorVariable('idProceso', sociedad.caseId))
         print('</PRIMER COMUNICACION CON BONITA>')
-
         return True
     except:
         return False
@@ -177,9 +173,7 @@ def aceptar_sociedad(id):
             sociedad = Sociedad.buscarPorId(id)
             sociedad.aceptada = True
 
-            print ('SOCIEDAD.IDCASE: ' + str(sociedad.caseId))
-
-            if (aceptarSociedadBonita(sociedad.caseId)):
+            if (aceptarSociedadBonita(sociedad)):
                 Sociedad.actualizar(sociedad)
 
                 # MOSTRAR LISTADO DE SOCIEDADES
@@ -207,16 +201,19 @@ def aceptar_sociedad(id):
     except Exception as e:
         return str(e)
 
-def aceptarSociedadBonita (caseId):
+def aceptarSociedadBonita (sociedad):
     try:
         print('<ACEPTAR SOCIEDAD BONITA>')
-        idActividad = bonita.buscarActividad(caseId)
+        print(str(Sociedad.__repr__(sociedad)))
+        idActividad = bonita.buscarActividad(sociedad.caseId)
         print("1.1 YA TENGO EL ID DE LA ACTIVIDAD")
         bonita.asignarTarea(idActividad)
         print("1.2 YA ASIGNE LA TAREA AL ACTOR CON ID {}".format(session["idUsuario"]))
-        bonita.setearVariable("registroValido", 'true', "java.lang.Boolean", caseId)
+        bonita.setearVariable("registroValido", 'true', "java.lang.Boolean", sociedad.caseId)
+        bonita.setearVariable("idSociedad", str(Sociedad.__repr__(sociedad)), "java.lang.String", sociedad.caseId)
         print("1.3 YA SETEE LA VARIABLE VALIDO:")
-        print("1.3.1 Registro Valido: " + bonita.consultarValorVariable("registroValido",caseId))
+        print("1.3.1 Registro Valido: " + bonita.consultarValorVariable("registroValido",sociedad.caseId))
+        print("1.3.2 Id Sociedad: " + bonita.consultarValorVariable("idSociedad",sociedad.caseId))
         bonita.actividadCompleta(idActividad)
         print("1.4 COMPLETE LA ACTIVIDAD")
         print('</ACEPTAR SOCIEDAD BONITA>')
@@ -224,6 +221,13 @@ def aceptarSociedadBonita (caseId):
         return True
     except:
         return False
+
+def generarNroExpediente(id):
+    sociedad = Sociedad.buscarPorId(id)
+    sociedad.nroExpediente = len(Sociedad.todos()) + 1
+    Sociedad.actualizar(sociedad)
+
+    return "GENERO EXPEDIENTE"
 
 def rechazar_sociedad(id):
     verificarSesionME()
@@ -312,45 +316,36 @@ def mostrar_estatutos():
         })
     return render_template("estatutos.html", estatutos = solicitudPost)
 
-def estampillar(id):
+def aceptarEstatuto(id):
     sociedad = Sociedad.buscarPorId(id)
     sociedad.estatuto_aceptado = True
-    print(sociedad.caseId)
-    if (aceptarEstatutoBonita(sociedad.caseId)):
+    if (aceptarEstatutoBonita(sociedad)):
         Sociedad.actualizar(sociedad)
-        if (estampillado.autenticacion('area_legales', 'dssdGrupo14')):
-            print("<GENERAR ESTAMPILLAD0>") 
-            print("1.1 Ya me autentique")
-            sociedad.estampillado = estampillado.generarEstampillado(sociedad.nroExpediente, sociedad.estatuto)
-            print('1.2 Ya genere estammpillado')
-            Sociedad.actualizar(sociedad)
-            flash ('Estampillado exitoso', 'success')
-            ## MOSTRAR LISTADO DE ESTATUTOS
-            solicitudes = Sociedad.getEstatutos()
-            solicitudPost = []
-            for each in solicitudes:
-                solicitudPost.append({
-                    'id': each.id,
-                    'estatuto': each.estatuto,
-                    'nombre': each.nombre,
-                    'correo': each.correo,
-                })
-            return render_template("estatutos.html", estatutos = solicitudPost)
-        else:
-            return "Falla en la comunicacion con API que genera estampillado"
+        ## MOSTRAR LISTADO DE ESTATUTOS
+        solicitudes = Sociedad.getEstatutos()
+        solicitudPost = []
+        for each in solicitudes:
+            solicitudPost.append({
+                'id': each.id,
+                'estatuto': each.estatuto,
+                'nombre': each.nombre,
+                'correo': each.correo,
+            })
+        flash("Estatuto aceptado exitosamente", "success")
+        return render_template("estatutos.html", estatutos = solicitudPost)
     else:
-        return "Falla en la comunicacion con Bonita"
+        return  "Falla en la comunicacion con Bonita"
 
-def aceptarEstatutoBonita (caseId):
+def aceptarEstatutoBonita (sociedad):
     try:
         print('<ACEPTAR ESTATUTO BONITA>')
-        idActividad = bonita.buscarActividad(caseId)
+        idActividad = bonita.buscarActividad(sociedad.caseId)
         print("1.1 YA TENGO EL ID DE LA ACTIVIDAD")
         bonita.asignarTarea(idActividad)
         print("1.2 YA ASIGNE LA TAREA AL ACTOR CON ID {}".format(session["idUsuario"]))
-        bonita.setearVariable("estatutoValido", 'true', "java.lang.Boolean", caseId)
+        bonita.setearVariable("estatutoValido", 'true', "java.lang.Boolean", sociedad.caseId)
         print("1.3 YA SETEE LA VARIABLE ESTATUTO VALIDO: ")
-        print("1.3.1 Estatuto Valido: " + bonita.consultarValorVariable("estatutoValido",caseId))
+        print("1.3.1 Estatuto Valido: " + bonita.consultarValorVariable("estatutoValido",sociedad.caseId))
         bonita.actividadCompleta(idActividad)
         print("1.4 COMPLETE LA ACTIVIDAD")
         print('</ACEPTAR ESTATUTO BONITA>')
@@ -358,6 +353,18 @@ def aceptarEstatutoBonita (caseId):
         return True
     except:
         return False
+
+def estampillar (id):
+    sociedad = Sociedad.buscarPorId(id)
+    if (estampillado.autenticacion('area_legales', 'dssdGrupo14')):
+            print("<GENERAR ESTAMPILLAD0>") 
+            print("1.1 Ya me autentique")
+            sociedad.estampillado = estampillado.generarEstampillado(sociedad.nroExpediente, sociedad.estatuto)
+            print('1.2 Ya genere estammpillado')
+            Sociedad.actualizar(sociedad)
+            return "Estampille"
+    else:
+        return "Falla en la comunicacion con API que genera estampillado"
 
 def rechazar_estatuto(id):
     verificarSesionAL()
@@ -422,40 +429,13 @@ def rechazarEstatutoBonita (caseId, comentario):
     except:
         return False
 
-def generarQR (id): #falta la comunicacion con Bonita
+def generarQR (id):
     soc = Sociedad.buscarPorId(id)
     if (qr.generarQR(soc)):
         soc.qr = 1
         Sociedad.actualizar(soc)
-        flash ('Generacion de codigo QR exitoso', 'success')
-        ## MOSTRAR LISTADO DE ESTATUTOS ESTAMPILLADOS
-        estatutos = Sociedad.devolverEstatutosAceptados()
-        estatutosPost = []
-        for each in estatutos:
-            estatutosPost.append({
-                'id': each.id,
-                'estatuto': each.estatuto,
-                'nombre': each.nombre,
-                'correo': each.correo,
-            })
-        return render_template("estatutos_aceptados.html", estatutos = estatutosPost)
     else:
         return "NO SE CREO QR"
-
-'''def bonitaGenerarQR (caseId):
-    try:
-        print('<GENERAR QR>')
-        idActividad = bonita.buscarActividad(caseId)
-        print("1.1 YA TENGO EL ID DE LA ACTIVIDAD")
-        bonita.asignarTarea(idActividad)
-        print("1.2 YA ASIGNE LA TAREA AL ACTOR CON ID {}".format(session["idUsuario"]))
-        bonita.actividadCompleta(idActividad)
-        print("1.3 COMPLETE LA ACTIVIDAD")
-        print('</GENERAR QR>')
-
-        return True
-    except:
-        return False'''
 
 def mostrarDatosPublicos(estampillado):
     soc = Sociedad.buscarPorEstampillado(estampillado)
@@ -475,7 +455,7 @@ def mostrarDatosPublicos(estampillado):
 
     return render_template("datosSociedadPublica.html", soc = socList, socios = sociosList)
 
-def generarPDF (id): #falta la comunicacion con Bonita
+def subirDrive (id):
     soc = Sociedad.buscarPorId(id)
     pdf = PDF()
     pdf.add_page()
@@ -487,17 +467,6 @@ def generarPDF (id): #falta la comunicacion con Bonita
     if (drive(soc.id)):
         soc.drive = 1
         Sociedad.actualizar(soc)
-        flash("Carga de PDF a Google Drive exitosa", "success")
-        sociedades = Sociedad.devolverSociedadesConQR()
-        sociedadesPost = []
-        for each in sociedades:
-            sociedadesPost.append({
-                'id': each.id,
-                'estatuto': each.estatuto,
-                'nombre': each.nombre,
-                'correo': each.correo,
-            })
-        return render_template("sociedades_aceptados.html", estatutos = sociedadesPost)
     else:
         return "FALLA EN LA CARGA A DRIVE"
 
@@ -506,29 +475,3 @@ def drive(id):
     subirPDF(soc)
 
     return True
-
-def mostrar_estatutos_aceptados():
-    verificarSesionAL()
-    estatutos = Sociedad.devolverEstatutosAceptados()
-    estatutosPost = []
-    for each in estatutos:
-        estatutosPost.append({
-            'id': each.id,
-            'estatuto': each.estatuto,
-            'nombre': each.nombre,
-            'correo': each.correo,
-        })
-    return render_template("estatutos_aceptados.html", estatutos = estatutosPost)
-
-def mostrar_sociedades_QR():
-    verificarSesionME()
-    sociedades = Sociedad.devolverSociedadesConQR()
-    sociedadesPost = []
-    for each in sociedades:
-        sociedadesPost.append({
-            'id': each.id,
-            'estatuto': each.estatuto,
-            'nombre': each.nombre,
-            'correo': each.correo,
-        })
-    return render_template("sociedades_aceptados.html", estatutos = sociedadesPost)

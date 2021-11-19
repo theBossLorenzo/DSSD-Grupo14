@@ -38,19 +38,20 @@ def create_app(environment="development"):
     app.add_url_rule("/sociedades", "sociedades", sociedad.sociedades)
     app.add_url_rule("/aceptar_sociedad/<id>", "aceptar_sociedad", sociedad.aceptar_sociedad)
     app.add_url_rule("/rechazar_sociedad/<id>", "rechazar_sociedad", sociedad.rechazar_sociedad, methods=["GET", "POST"])
-    app.add_url_rule("/sociedades_aceptados", "mostrar_sociedades_aceptadas", sociedad.mostrar_sociedades_QR) 
-    app.add_url_rule("/generarPDF/<id>", "generar_pdf", sociedad.generarPDF)
-    app.add_url_rule("/cargaDrive/<id>", "carga_drive", sociedad.drive)
+
     #AREA LEGALES
     app.add_url_rule("/estatutos", "estatutos", sociedad.mostrar_estatutos)
-    app.add_url_rule("/estampillar/<id>", "estampillar", sociedad.estampillar)
+    app.add_url_rule("/aceptar_estatuto/<id>", "aceptar_estatuto", sociedad.aceptarEstatuto)
     app.add_url_rule("/rechazar_estatuto/<id>", "rechazar_estatuto", sociedad.rechazar_estatuto,  methods=["GET", "POST"])
-    app.add_url_rule("/estatutos_aceptados", "mostrar_estatutos_aceptados", sociedad.mostrar_estatutos_aceptados)
-    app.add_url_rule("/generarQR/<id>", "generar_qr", sociedad.generarQR)
+    
     
     app.add_url_rule("/datosPublicos/<estampillado>", "datos_publicos", sociedad.mostrarDatosPublicos)
 
-
+    #URL BONITA
+    app.add_url_rule("/generarNumeroExpediente/<id>", "expendiente", sociedad.generarNroExpediente, methods=["GET"])
+    app.add_url_rule("/estampillar/<id>", "estampillar", sociedad.estampillar, methods=["GET"])
+    app.add_url_rule("/generarQR/<id>", "generar_qr", sociedad.generarQR, methods=["GET"])
+    app.add_url_rule("/subir_drive/<id>", "subir_drive", sociedad.subirDrive, methods=["GET"])
 
     # Ruta para el Home (usando decorator)
     @app.route("/")
