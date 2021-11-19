@@ -1,11 +1,14 @@
 from os import path, environ
-from flask import Flask, render_template, g, Blueprint,redirect
+from flask import Flask, render_template, g, Blueprint,redirect, make_response
 from flask_session import Session
+from werkzeug.utils import send_file
 from config import config
 from app.db import db
 from flask_migrate import Migrate
 from app.helpers import handler 
 from app.resources import sociedad,autenticacionEmpleados
+from app.models.estauto import Estatuto
+from app.models.sociedad import Sociedad
 #from flask_migrate import Migrate
 
 
@@ -57,6 +60,17 @@ def create_app(environment="development"):
     @app.route("/")
     def home():
         return redirect("login")
+
+    @app.route("/sociedad/<id>/estatuto")
+    def mostrar_Estatuto(id):
+        estatuto = Estatuto.buscarPorSociedad(id)
+        sociedad = Sociedad.buscarPorId(id)
+        pdf = estatuto.data
+        response = make_response(pdf)
+        response.headers['Content-Type'] = 'application/pdf'
+        response.headers['Content-Disposition'] = \
+            'inline; filename=%s.pdf' % 'estatuto-{}'.format(sociedad.nombre)
+        return response
 
     # Rutas de API-REST (usando Blueprints)
     # api = Blueprint("api", __name__, url_prefix="/api")

@@ -97,7 +97,7 @@
                     <tr>
                         <td>{{ s.nombre }}</td>
                         <td>{{ s.correo }}</td>
-                        <td>{{ s.estatuto }}</td>
+                        <td><a href="{{url_for('mostrar_Estatuto', id=s.id)}}">{{ s.estatuto }}</a></td>
                         <td><a href="{{url_for('aceptar_estatuto', id=s.id)}}" class="btn btn-success">Aceptar</a></td>
                         <td><a href="{{url_for('rechazar_estatuto', id=s.id)}}" class="btn btn-danger">Rechazar</a></td>
                     </tr>
