@@ -1,5 +1,5 @@
-from os import path, environ
-from flask import Flask, render_template, g, Blueprint,redirect
+from os import environ
+from flask import Flask,redirect
 from flask_session import Session
 from config import config
 from app.db import db
