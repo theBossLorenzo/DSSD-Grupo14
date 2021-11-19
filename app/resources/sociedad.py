@@ -53,8 +53,6 @@ def altaFormualrio():
                         if (totalPorcentajes == 100):
                             # ------BONITA COMUNICACION-------
                             if (comunicacionBonita(sociedad)):
-                                nroExpediente = len(Sociedad.todos()) + 1
-                                sociedad.nroExpediente = nroExpediente
                                 # Guardamos sociedad y estatuto de la misma
                                 Sociedad.guardar(sociedad)
                                 soc = Sociedad.__repr__(sociedad)
@@ -224,7 +222,7 @@ def aceptarSociedadBonita (sociedad):
 
 def generarNroExpediente(id):
     sociedad = Sociedad.buscarPorId(id)
-    sociedad.nroExpediente = len(Sociedad.todos()) + 1
+    sociedad.nroExpediente = id
     Sociedad.actualizar(sociedad)
 
     return "GENERO EXPEDIENTE"
