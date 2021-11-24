@@ -26,6 +26,9 @@ def altaFormualrio():
         correo = request.form.get('correo')
         socios = request.form.get('socios')
         estatuto_file = request.files['estatuto']
+        pais = request.form.get('pais').split(',')[0]
+        estado = request.form.get('estado')
+        continente = request.form.get('continente2')
 
         try:
             if Sociedad.buscarPorNombre(nombre) is None:
@@ -41,6 +44,9 @@ def altaFormualrio():
                         sociedad.fecha_rechazo = None
                         sociedad.aceptada = None
                         sociedad.comentario = None
+                        sociedad.pais = pais
+                        sociedad.estado = estado
+                        sociedad.continente = continente
                         Sociedad.actualizar(sociedad)
 
                         estatuto = Estatuto.buscarPorSociedad(sociedad.id)
@@ -81,7 +87,7 @@ def altaFormualrio():
                         flash ('No se puede agregar, el plazo de reentrega ha caducado', 'error')
                 else:
                     sociedad = Sociedad(nombre=nombre, estatuto=estatuto_file.filename, fecha_creacion=fecha_creacion, domicilio_legal=domicilio_legal, 
-                                                                                                                domicilio_real=domicilio_real,correo=correo)
+                                                                                                                domicilio_real=domicilio_real,correo=correo,pais=pais,estado=estado,continente=continente)
 
                     totalPorcentajes = 0
                     for x in range(int(socios)):

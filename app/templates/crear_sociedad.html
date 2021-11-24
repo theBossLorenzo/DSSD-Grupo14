@@ -10,7 +10,107 @@
         crossorigin="anonymous">
 
     <script src="//cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
     <script type='text/javascript'>
+
+        function getCountries() {
+            const options = {
+                method: "post",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    query: `query countries{countries{ name code } }`
+                })
+            };
+
+            return fetch(`https://countries.trevorblades.com/`, options).then(res => res.json());
+
+
+        }
+
+        function getStates() {
+
+            var select = document.getElementById('pais');
+            var value = select.options[select.selectedIndex].value;
+            var code = value.split(',')[1];
+
+            const options = {
+                method: "post",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    query: `query countryStates{ country(code:"`+ code +`"){ states { name } }}`
+                })
+            };
+
+            return fetch(`https://countries.trevorblades.com/`, options).then(res => res.json());
+
+
+        }
+
+        function getContinent() {
+
+            var select = document.getElementById('pais');
+            var value = select.options[select.selectedIndex].value;
+            var code = value.split(',')[1];
+
+            const options = {
+                method: "post",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    query: `query countryContinent{ country(code:"`+ code +`"){ continent { name } }}`
+                })
+            };
+
+            return fetch(`https://countries.trevorblades.com/`, options).then(res => res.json());
+
+
+        }
+
+        async function renderCountries() {
+
+            var paises = document.getElementById("pais");
+            let countries = await getCountries()
+            countries['data']['countries'].forEach(country => {
+                var opcion = document.createElement("option");
+                opcion.textContent = country.name + ',' + country.code
+                paises.appendChild(opcion)
+            });
+        }
+
+        async function renderContinent() {
+
+            var continente = document.getElementById("continente");
+            var continente2 = document.getElementById("continente2");
+            let continent = await getContinent()
+            continente.textContent = continent['data']['country']['continent'].name
+            continente2.value = continent['data']['country']['continent'].name
+
+        }
+
+        async function renderStates() {
+
+            await renderContinent()
+            var estados = document.getElementById("estado");
+
+            // Eliminar estados anteriores
+            var i, L = estados.options.length - 1;
+            for(i = L; i >= 0; i--) {
+                estados.remove(i);
+            }
+
+            let states = await getStates()
+
+            states['data']['country']['states'].forEach(state => {
+                var opcion = document.createElement("option");
+                opcion.textContent = state.name
+                estados.appendChild(opcion)
+            });
+        }
 
         function addFields(){
             // Number of inputs to create
@@ -106,11 +206,12 @@
             submit.id = "fila_socio";
             form.appendChild(submit);
         }
+
     </script>
 
 </head>
 
-<body>
+<body onload="renderCountries()">
     <div class="container">
 
         <div class="container">
@@ -203,8 +304,31 @@
                     <label for="estatuto">Adjuntar Estatuto (en formato .docx .odt o .pdf)</label>
                     <input class="form-control" type="file" accept=".docx,.odt,.pdf" id="estatuto" name="estatuto">
                 </div>
+                <br>
+                <div class="form-row ">
+                    <label>Seleccionar lugar de Exportacion</label>
+                </div>
+                <div class="form-row ">
+                    <label for="pais">Pais</label>&nbsp;&nbsp;&nbsp;
+                    <br>
+                    <select name="pais" id="pais" oninput="renderStates()">
 
+                    </select>
+                </div>
+                <br>
+                <div class="form-row ">
+                    <label for="estado">Estado (si aplica)</label>&nbsp;&nbsp;&nbsp;
+                    <br>
+                    <select name="estado" id="estado">
 
+                    </select>
+                </div>
+                <br>
+                <div class="form-row ">
+                    <label>Continente:</label>&nbsp;&nbsp;&nbsp;
+                    <label id="continente" name="continente"></label>
+                    <input type="hidden" id="continente2" name="continente2" value="">
+                </div>
                 <br>
 
 

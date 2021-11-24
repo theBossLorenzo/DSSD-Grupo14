@@ -25,8 +25,11 @@ class Sociedad(db.Model):
     nroExpediente = db.Column(db.Integer)
     qr = db.Column(db.Integer) # 1=SI 0=NO
     drive = db.Column(db.Integer) # 1=SI 0=NO
+    pais = db.Column(db.String())
+    estado = db.Column(db.String())
+    continente = db.Column(db.String())
 
-    def __init__(self, nombre,estatuto,fecha_creacion,domicilio_legal,domicilio_real,correo):
+    def __init__(self, nombre,estatuto,fecha_creacion,domicilio_legal,domicilio_real,correo, pais, estado, continente):
         self.nombre = nombre
         self.estatuto = estatuto
         self.fecha_creacion = fecha_creacion
@@ -35,6 +38,9 @@ class Sociedad(db.Model):
         self.correo = correo
         self.qr = 0
         self.drive = 0
+        self.pais = pais
+        self.estado = estado
+        self.continente = continente
 
 
     def __repr__(self):
