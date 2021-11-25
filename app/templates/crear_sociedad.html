@@ -50,6 +50,23 @@
 
         }
 
+        function getStatesAR() {
+
+            const options = {
+                method: "post",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    query: `query countryStates{ country(code:"AR"){ states { name } }}`
+                })
+            };
+
+            return fetch(`https://countries.trevorblades.com/`, options).then(res => res.json());
+
+
+        }
+
         function getContinent() {
 
             var select = document.getElementById('pais');
@@ -73,6 +90,7 @@
 
         async function renderCountries() {
 
+            renderARstates()
             var paises = document.getElementById("pais");
             let countries = await getCountries()
             countries['data']['countries'].forEach(country => {
@@ -109,6 +127,16 @@
                 var opcion = document.createElement("option");
                 opcion.textContent = state.name
                 estados.appendChild(opcion)
+            });
+        }
+
+        async function renderARstates() {
+            var domicilio = document.getElementById("domicilio_legal");
+            let estados = await getStatesAR()
+            estados['data']['country']['states'].forEach(state => {
+                var opcion = document.createElement("option");
+                opcion.textContent = state.name
+                domicilio.appendChild(opcion)
             });
         }
 
@@ -286,8 +314,10 @@
                 </div>
                 <br>
                    <div class="form-row">
-                    <label for="domicilio_real">Domicilio legal</label>
-                    <input required class="form-control" type="text" placeholder="Domicilio legal" id="domicilio_legal" name="domicilio_legal">
+                    <label for="domicilio_legal">Domicilio legal</label>&nbsp;&nbsp;&nbsp;
+                       <select name="domicilio_legal" id="domicilio_legal">
+
+                       </select>
                 </div>
                 <br>
                   <div class="form-row">

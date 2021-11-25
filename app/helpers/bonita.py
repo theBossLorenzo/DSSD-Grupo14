@@ -172,4 +172,38 @@ def buscarIdUsuarioLogueado(username):
 
     return True
 
+def getAllActivities():
+    url = "http://localhost:8085/bonita/API/bpm/activity?o=last_update_date desc"
+    payload={}
+    headers = {
+        'X-Bonita-API-Token': session["X-Bonita-API-Token"],
+        'Cookie': session["Cookies-bonita"]
+    }
+    response = requests.request("GET", url, headers=headers, data=payload)
+
+    return response.json()
+
+def getAllCases():
+    url = "http://localhost:8085/bonita/API/bpm/case?o"
+    payload={}
+    headers = {
+        'X-Bonita-API-Token': session["X-Bonita-API-Token"],
+        'Cookie': session["Cookies-bonita"]
+    }
+    response = requests.request("GET", url, headers=headers, data=payload)
+
+    return response.json()
+
+def getAllArchivedActivities():
+    url = "http://localhost:8085/bonita/API/bpm/archivedActivity?o=reached_state_date desc"
+    payload={}
+    headers = {
+        'X-Bonita-API-Token': session["X-Bonita-API-Token"],
+        'Cookie': session["Cookies-bonita"]
+    }
+    response = requests.request("GET", url, headers=headers, data=payload)
+
+    return response.json()
+
+
 

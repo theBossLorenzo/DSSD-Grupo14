@@ -6,7 +6,7 @@ from config import config
 from app.db import db
 from flask_migrate import Migrate
 from app.helpers import handler 
-from app.resources import sociedad,autenticacionEmpleados
+from app.resources import sociedad, autenticacionEmpleados, estadisticas
 from app.models.estauto import Estatuto
 from app.models.sociedad import Sociedad
 #from flask_migrate import Migrate
@@ -46,6 +46,9 @@ def create_app(environment="development"):
     app.add_url_rule("/estatutos", "estatutos", sociedad.mostrar_estatutos)
     app.add_url_rule("/aceptar_estatuto/<id>", "aceptar_estatuto", sociedad.aceptarEstatuto)
     app.add_url_rule("/rechazar_estatuto/<id>", "rechazar_estatuto", sociedad.rechazar_estatuto,  methods=["GET", "POST"])
+
+    #ESTADISTICAS
+    app.add_url_rule("/estadisticas", "estadisticas", estadisticas.estadisticas)
     
     
     app.add_url_rule("/datosPublicos/<estampillado>", "datos_publicos", sociedad.mostrarDatosPublicos)

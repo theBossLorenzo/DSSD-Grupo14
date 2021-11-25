@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO"
+        crossorigin="anonymous">
+
+    <script src="//cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+</head>
+
+<script type='text/javascript'>
+
+    function getLanguages() {
+
+        var select = document.getElementById('pais');
+        var value = select.textContent;
+        var code = value.split(',')[1];
+
+        const options = {
+            method: "post",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                query: `query countryLanguages{ country(code:"`+ code +`"){ languages { name } }}`
+            })
+        };
+
+        return fetch(`https://countries.trevorblades.com/`, options).then(res => res.json());
+
+
+    }
+
+    async function renderLanguages() {
+
+        var lenguaje = document.getElementById("lenguaje");
+        let lenguajes = await getLanguages()
+        lenguajes['data']['country']['languages'].forEach(language => {
+            lenguaje.textContent = lenguaje.textContent + '  ' + language.name
+        });
+    }
+
+</script>
+
+<body>
+
+    <div class="container">
+        {% with mensajes= get_flashed_messages(category_filter=["error"])%}
+                {% if mensajes %}
+                    {% for messages in mensajes%}
+                    <script>
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Oops...',
+                            text: "{{messages}}",
+                        })
+                    </script>
+                    {% endfor %}
+                {% endif %}
+                {% endwith %}
+                {% with mensajes= get_flashed_messages(category_filter=["success"])%}
+                    {% if mensajes %}
+                        {% for messages in mensajes%}
+                        <script>
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Bien hecho!',
+                                text: "{{messages}}",
+                            })
+                        </script>
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
+                {% with mensajes= get_flashed_messages(category_filter=["warning"])%}
+                {% if mensajes %}
+                    {% for messages in mensajes%}
+                    <script>
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'Cuidado!',
+                            text: "{{messages}}",
+                        })
+                    </script>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+        <div class="container">
+            <div style="float: right; margin-top: 0.5%;">
+                <a href="{{url_for('logout')}}" class="btn btn-primary" >Cerrar sesion</a>
+            </div>
+            <br>
+            <br>
+
+            <div class="row align-items-center justify-content-center">
+                <h2>DSSD 2021 - Grupo 14</h2>
+            </div>
+            <div class="row align-items-center justify-content-center">
+                <h2>Panel de Estadisticas</h2>
+            </div>
+            <br>
+            <br>
+            <br>
+            <div class="row align-items-center justify-content-center">
+                <h5>El continente del planeta hacia donde más se exporta: </h5>&nbsp;&nbsp;&nbsp;
+                 <h4>{{continente}}</h4>
+            </div>
+            <br>
+            <div class="row align-items-center justify-content-center">
+                <p hidden name="pais" id="pais">{{pais}}</p>
+                <h5>El / los lenguajes del país hacia donde más se exporta ({{pais}}):</h5>&nbsp;&nbsp;&nbsp;
+                <h4 name="lenguaje" id="lenguaje"></h4>
+                <script>
+                    renderLanguages();
+                </script>
+            </div>
+            <br>
+            <div class="row align-items-center justify-content-center">
+                <h5>Los estados (provincias) donde se registran más sociedades:</h5>&nbsp;&nbsp;&nbsp;
+                <h4>{{estado}}</h4>
+            </div>
+            <br>
+            <div class="row align-items-center justify-content-center">
+                <h5>Cantidad de actividades de bonita activas: </h5>&nbsp;&nbsp;&nbsp;
+                <h4>{{terminadas}}</h4>
+            </div>
+            <br>
+            <div class="row align-items-center justify-content-center">
+                <h5>Cantidad de activities de bonita terminadas: </h5>&nbsp;&nbsp;&nbsp;
+                <h4>{{archived}}</h4>
+            </div>
+            <br>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js " integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo "
+        crossorigin="anonymous "></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js " integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49 "
+        crossorigin="anonymous "></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js " integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy "
+        crossorigin="anonymous "></script>
+</body>
+
+</html>

@@ -26,7 +26,7 @@ def altaFormualrio():
         correo = request.form.get('correo')
         socios = request.form.get('socios')
         estatuto_file = request.files['estatuto']
-        pais = request.form.get('pais').split(',')[0]
+        pais = request.form.get('pais')
         estado = request.form.get('estado')
         continente = request.form.get('continente2')
 
