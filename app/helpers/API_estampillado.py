@@ -32,5 +32,5 @@ def generarEstampillado(nroExpediente, estatuto):
 
     response = requests.request("POST", url, headers=headers, data=payload)
     
-    print(response.text)
+    #print(response.text)
     return response.json()["estampillado"]

@@ -365,6 +365,7 @@ def estampillar (id):
             print("1.1 Ya me autentique")
             sociedad.estampillado = estampillado.generarEstampillado(sociedad.nroExpediente, sociedad.estatuto)
             print('1.2 Ya genere estammpillado')
+            print("</GENERAR ESTAMPILLAD0>") 
             Sociedad.actualizar(sociedad)
             return "Estampille"
     else:
@@ -434,10 +435,13 @@ def rechazarEstatutoBonita (caseId, comentario):
         return False
 
 def generarQR (id):
+    print("<GENERAR QR>") 
     soc = Sociedad.buscarPorId(id)
     if (qr.generarQR(soc)):
         soc.qr = 1
         Sociedad.actualizar(soc)
+        print("</GENERAR QR>") 
+        return "GENERE QR"
     else:
         return "NO SE CREO QR"
 
@@ -460,17 +464,21 @@ def mostrarDatosPublicos(estampillado):
     return render_template("datosSociedadPublica.html", soc = socList, socios = sociosList)
 
 def subirDrive (id):
+    print("<GENERAR EXPEDIENTE DIGITAL>") 
     soc = Sociedad.buscarPorId(id)
-    pdf = PDF()
+    pdf = PDF() 
     pdf.add_page()
     pdf.logo('app/static/qr/QR{}.png'.format(soc.nroExpediente), 0, 0, 40, 40)
     pdf.text(soc)
     pdf.titles(soc.nombre)
     pdf.output("app/static/PDF/ExpedienteDigital_Soc{}.pdf".format(soc.estampillado), "F")
+    print("<1.1 Ya genere PDF>")
 
     if (drive(soc.id)):
         soc.drive = 1
         Sociedad.actualizar(soc)
+        print("</GENERAR EXPEDIENTE DIGITAL>") 
+        return "GENERE DRIVE"
     else:
         return "FALLA EN LA CARGA A DRIVE"
 
